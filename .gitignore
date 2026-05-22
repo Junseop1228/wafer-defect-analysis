@@ -1,0 +1,32 @@
+# Data (large files)
+data/*.pkl
+data/*.csv
+
+# ML artifacts
+mlruns/
+optuna_studies/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# Generated figures (reproducible)
+results/figures/*.png
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Antigravity cache
+.antigravity/cache/
+
+# context/ — commit everything EXCEPT handoff.md (personal session notes)
+# handoff.md is useful locally but noisy on GitHub
+context/handoff.md

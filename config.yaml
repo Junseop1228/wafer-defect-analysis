@@ -1,0 +1,39 @@
+﻿# WM-811K Pipeline Configuration
+# Central gate thresholds and cycle limits
+
+data:
+  raw_path: data/LSWMD.pkl
+  labeled_output: data/df_labeled.pkl
+  unlabeled_output: data/df_unlabeled.pkl
+  resize: 64
+
+gates:
+  gate1:
+    min_shap_contribution: 0.01
+    max_correlation: 0.90
+  gate2:
+    stage1_min_defect_recall: 0.90
+    stage2_min_scratch_recall: 0.70
+    stage2_min_donut_recall: 0.75
+  gate3:
+    max_confusion_pair_f1_gap: 0.20
+  gate4:
+    min_arl: 370
+
+cycles:
+  max_iterations: 3
+  pseudo_label_confidence: 0.95
+
+optuna:
+  n_trials: 50
+  direction: maximize
+  metric: macro_f1
+
+mlflow:
+  experiment_name: wm811k_wafer_defect
+  tracking_uri: mlruns/
+
+spc:
+  phase1_percentile: 70
+  ewma_lambda: 0.2
+  cusum_k: 0.5

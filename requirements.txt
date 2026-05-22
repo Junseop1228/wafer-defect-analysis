@@ -1,0 +1,32 @@
+﻿# Core
+numpy
+pandas
+scikit-learn
+scipy
+scikit-image
+
+# Deep Learning
+torch
+torchvision
+
+# Explainability
+shap
+# pytorch-grad-cam  # install separately: pip install grad-cam
+
+# Imbalanced
+imbalanced-learn
+
+# MLOps
+optuna
+mlflow
+
+# Dashboard
+streamlit
+
+# Visualization
+matplotlib
+seaborn
+
+# Spatial (Moran's I)
+libpysal
+esda

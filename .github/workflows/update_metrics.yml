@@ -1,0 +1,148 @@
+name: Update Metrics
+
+on:
+  push:
+    paths:
+      - 'context/experiment_log.md'
+    branches:
+      - dev
+      - 'stage/**'
+
+jobs:
+  update-metrics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install minimal deps
+        run: pip install pyyaml pandas
+
+      - name: Parse experiment_log and update metrics.csv
+        run: |
+          python - <<'EOF'
+          import re
+          import pandas as pd
+          from pathlib import Path
+          from datetime import datetime
+
+          log_path = Path("context/experiment_log.md")
+          csv_path = Path("results/metrics.csv")
+
+          log_text = log_path.read_text(encoding="utf-8")
+
+          # Parse entries: ## [YYYY-MM-DD HH:MM] Stage X — description
+          entries = []
+          blocks = re.split(r"(?=^## \[\d{4}-\d{2}-\d{2})", log_text, flags=re.MULTILINE)
+
+          for block in blocks:
+              if not block.strip().startswith("## ["):
+                  continue
+              entry = {"raw": block.strip()}
+
+              # Date
+              date_match = re.search(r"\[(\d{4}-\d{2}-\d{2})", block)
+              if date_match:
+                  entry["date"] = date_match.group(1)
+
+              # Stage
+              stage_match = re.search(r"Stage\s+([\w-]+)", block)
+              if stage_match:
+                  entry["stage"] = stage_match.group(1)
+
+              # Metrics
+              for metric in ["macro_f1", "scratch_recall", "donut_recall", "binary_defect_recall"]:
+                  m = re.search(rf"{metric}[:\s]+([\d.]+)", block)
+                  entry[metric] = float(m.group(1)) if m else None
+
+              # Gate result
+              gate_match = re.search(r"Gate[:\s]+(\w+)\s*[-—]\s*(PASSED|FAILED)", block, re.IGNORECASE)
+              if gate_match:
+                  entry["gate"] = gate_match.group(1)
+                  entry["gate_result"] = gate_match.group(2).upper()
+
+              entries.append(entry)
+
+          if not entries:
+              print("No entries found in experiment_log.md — nothing to update.")
+              exit(0)
+
+          df_new = pd.DataFrame(entries).drop(columns=["raw"], errors="ignore")
+
+          # Merge with existing metrics.csv
+          if csv_path.exists():
+              df_existing = pd.read_csv(csv_path)
+              df_combined = pd.concat([df_existing, df_new], ignore_index=True).drop_duplicates()
+          else:
+              df_combined = df_new
+
+          csv_path.parent.mkdir(parents=True, exist_ok=True)
+          df_combined.to_csv(csv_path, index=False)
+          print(f"metrics.csv updated: {len(df_combined)} entries")
+          EOF
+
+      - name: Update README Key Results table
+        run: |
+          python - <<'EOF'
+          import pandas as pd
+          from pathlib import Path
+
+          csv_path = Path("results/metrics.csv")
+          readme_path = Path("README.md")
+
+          if not csv_path.exists():
+              print("metrics.csv not found — skipping README update.")
+              exit(0)
+
+          df = pd.read_csv(csv_path)
+
+          # Get best result per stage
+          summary_rows = []
+          for stage_label, model_name in [
+              ("4", "RF (28 features)"),
+              ("4", "Custom CNN"),
+              ("4", "Hybrid"),
+          ]:
+              subset = df[df.get("stage", pd.Series()).astype(str).str.contains(stage_label, na=False)]
+              if subset.empty:
+                  summary_rows.append(f"| {model_name} | TBD | TBD | TBD |")
+              else:
+                  best = subset.sort_values("macro_f1", ascending=False).iloc[0]
+                  summary_rows.append(
+                      f"| {model_name} | {best.get('macro_f1', 'TBD'):.3f} "
+                      f"| {best.get('scratch_recall', 'TBD'):.3f} "
+                      f"| {best.get('donut_recall', 'TBD'):.3f} |"
+                  )
+
+          table = "\n".join([
+              "| Model | Macro F1 | Scratch Recall | Donut Recall |",
+              "|-------|----------|---------------|--------------|",
+          ] + summary_rows)
+
+          readme = readme_path.read_text(encoding="utf-8")
+          import re
+          updated = re.sub(
+              r"(\| Model \| Macro F1.*?)\n(?=##|\Z)",
+              table + "\n\n",
+              readme,
+              flags=re.DOTALL,
+          )
+          readme_path.write_text(updated, encoding="utf-8")
+          print("README.md Key Results table updated.")
+          EOF
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add results/metrics.csv README.md
+          git diff --staged --quiet || git commit -m "chore: auto-update metrics from experiment_log [skip ci]"
+          git push
