@@ -56,3 +56,37 @@ def check_gate2_binary(recall: float, cfg: dict) -> dict:
         print(f"[GATE 2 BINARY] FAILED (Recall: {recall:.4f} < {threshold})")
         
     return result
+
+
+def check_gate2_full(scratch_recall: float, donut_recall: float, cfg: dict) -> dict:
+    """Gate 2 full check: scratch_recall >= 0.70, donut_recall >= 0.75."""
+    thr_scratch = cfg["gates"]["gate2"]["stage2_min_scratch_recall"]
+    thr_donut = cfg["gates"]["gate2"]["stage2_min_donut_recall"]
+
+    pass_scratch = bool(scratch_recall >= thr_scratch)
+    pass_donut = bool(donut_recall >= thr_donut)
+    passed = pass_scratch and pass_donut
+
+    result = {
+        "passed": passed,
+        "details": {
+            "scratch_recall": float(scratch_recall),
+            "scratch_threshold": thr_scratch,
+            "scratch_passed": pass_scratch,
+            "donut_recall": float(donut_recall),
+            "donut_threshold": thr_donut,
+            "donut_passed": pass_donut,
+        }
+    }
+
+    if passed:
+        print(f"[GATE 2 FULL] PASSED  Scratch: {scratch_recall:.4f}>={thr_scratch}  Donut: {donut_recall:.4f}>={thr_donut}")
+    else:
+        reasons = []
+        if not pass_scratch:
+            reasons.append(f"Scratch recall {scratch_recall:.4f} < {thr_scratch}")
+        if not pass_donut:
+            reasons.append(f"Donut recall {donut_recall:.4f} < {thr_donut}")
+        print(f"[GATE 2 FULL] FAILED: {', '.join(reasons)}")
+
+    return result

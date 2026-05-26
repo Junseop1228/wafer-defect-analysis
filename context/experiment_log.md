@@ -171,6 +171,19 @@
 - Error (if any): None
 - Notes: Optuna 20 trials. Hybrid model combining 21 manual features + 128 CNN embeddings (149 dims total, corrected to 148 due to 'failureType' label extraction). Macro F1 dramatically improved to 0.87. `results/metrics.csv` 3-way comparison table generated successfully.
 
+## [2026-05-26 19:50] Stage 5 — Task 7: SHAP + Grad-CAM
+- Branch: agent/stage5-shap
+- Command: `conda activate wm811k; python run_nb_shap.py`
+- Result: SUCCESS
+- Metrics:
+  - macro_f1: N/A (interpretation task)
+  - scratch_recall: N/A
+  - donut_recall: N/A
+- Gate: Gate 2 Full — PASSED (Scratch 0.7950 >= 0.70, Donut 0.7838 >= 0.75)
+- MLflow run_id: auto (stage5_shap, stage5_gradcam)
+- Error (if any): None (fixed CNN num_classes mismatch 9 vs 8 on retry)
+- Notes: SHAP bar plots saved for all 8 defect classes + shap_summary_table.png. Grad-CAM heatmaps saved for all 9 CNN classes (incl. none). Manual hook-based Grad-CAM implemented without pytorch-grad-cam library.
+
 <!-- APPEND NEW ENTRIES ABOVE THIS LINE -->
 
 ---
