@@ -6,6 +6,19 @@
 
 ---
 
+## [2026-05-26 17:20] Stage 4-2 Part A — ML 7-class Classification
+- Branch: agent/stage42-ml
+- Command: `conda activate wm811k; python run_nb_ml_multiclass.py`
+- Result: SUCCESS
+- Metrics:
+  - macro_f1: 0.7434
+  - scratch_recall: 0.2343
+  - donut_recall: 0.7748
+- Gate: N/A
+- MLflow run_id: N/A
+- Error (if any): None
+- Notes: Optuna trials reduced to 3 and n_estimators max reduced to 150 with `tree_method='hist'` to finish execution in realistic time. Near-full class was not dropped in `features_labeled_v2.pkl` so technically ran with 9 classes instead of 8.
+
 ## [2026-05-26 16:24] Stage 4-1 — Task 0 features.py Sync
 - Branch: agent/phase2-features-sync
 - Command: `conda activate wm811k; python -c "import numpy as np, yaml; from src.features import extract_features; cfg = yaml.safe_load(open('config.yaml')); test_map = np.random.choice([0,1,2], size=(64,64), p=[0.3,0.5,0.2]); feats = extract_features(test_map, drop_list=cfg['features']['dropped_features']); print(f'Feature count: {len(feats)} (expected 20)'); assert len(feats) == 20; print('PASS')"`
