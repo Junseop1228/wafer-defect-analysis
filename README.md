@@ -23,9 +23,9 @@
 
 | Model | Macro F1 | Scratch Recall | Donut Recall |
 |-------|----------|---------------|--------------|
-| ML (XGBoost, 20 features) | 0.705 | 0.285 | 0.766 |
-| Custom CNN (64×64, 30ep) | 0.787 | 0.774 | 0.838 |
-| **Hybrid (채택)** | **0.870** | **0.795** | **0.784** |
+| RF (28 features) | 0.930 | nan | nan |
+| Custom CNN | 0.930 | nan | nan |
+| Hybrid | 0.930 | nan | nan |
 
 ## Defect → Process Interpretation
 
