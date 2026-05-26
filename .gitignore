@@ -47,3 +47,7 @@ merge_branches*.ps1
 
 
 data/*.npy
+results/hybrid_model.pkl
+
+results/*.pkl
+results/*.pth
