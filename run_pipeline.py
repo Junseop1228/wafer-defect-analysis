@@ -64,6 +64,7 @@ def run_multiclass(cfg):
     print("\n--- Running Multiclass Stage ---")
     # Load dataset for ML & Hybrid
     df_hybrid = pd.read_pickle('data/features_labeled_v2.pkl')
+    df_hybrid['failureType'] = df_hybrid['failureType'].replace({'Near-full': 'Normal', 'none': 'Normal'})
     FEATURE_COLS = [c for c in df_hybrid.columns if c != 'failureType']
     X_manual = df_hybrid[FEATURE_COLS].values
     y_hybrid = df_hybrid['failureType'].values
@@ -112,17 +113,69 @@ def run_multiclass(cfg):
     print("Evaluating Hybrid on Gate 2 and Gate 3...")
     y_pred_h = res_hybrid['model'].predict(X_hybrid[idx_te])
     
-    recalls = recall_score(y_hybrid[idx_te], y_pred_h, average=None, labels=classes)
+    y_pred_h_str = [classes[i] for i in y_pred_h]
+    
+    recalls = recall_score(y_hybrid[idx_te], y_pred_h_str, average=None, labels=classes)
     recall_dict = dict(zip(classes, recalls))
     
     scratch_recall = recall_dict.get('Scratch', 0)
     donut_recall = recall_dict.get('Donut', 0)
     
     check_gate2_full(scratch_recall, donut_recall, cfg)
-    check_gate3(y_hybrid[idx_te], y_pred_h, classes, cfg)
+    check_gate3(y_hybrid[idx_te], y_pred_h_str, classes, cfg)
     
     plot_3way_comparison('results/metrics.csv', save_path='results/figures/3way_comparison.png')
     print("Multiclass stage complete.\n")
+
+def run_validate(cfg):
+    print("\n--- Running Validate Stage ---")
+    df_hybrid = pd.read_pickle('data/features_labeled_v2.pkl')
+    df_hybrid['failureType'] = df_hybrid['failureType'].replace({'Near-full': 'Normal', 'none': 'Normal'})
+    FEATURE_COLS = [c for c in df_hybrid.columns if c != 'failureType']
+    X_manual = df_hybrid[FEATURE_COLS].values
+    y_hybrid = df_hybrid['failureType'].values
+    
+    print("Loading existing CNN embeddings...")
+    import os
+    if not os.path.exists(cfg['data']['cnn_embeddings']):
+        print(f"Error: {cfg['data']['cnn_embeddings']} not found. Run Task 3 first.")
+        sys.exit(1)
+        
+    cnn_embs = np.load(cfg['data']['cnn_embeddings'])
+    X_hybrid = np.hstack([X_manual, cnn_embs])
+    
+    idx_tr, idx_te = train_test_split(range(len(X_hybrid)), test_size=0.2, stratify=y_hybrid, random_state=cfg['seed'])
+    
+    print("Training Hybrid Multiclass with existing embeddings...")
+    res_hybrid = train_hybrid(cfg, X_hybrid[idx_tr], y_hybrid[idx_tr], X_hybrid[idx_te], y_hybrid[idx_te], cfg['data']['cnn_embeddings'])
+    
+    print("Evaluating Hybrid on Gate 2 and Gate 3...")
+    y_pred_h = res_hybrid['model'].predict(X_hybrid[idx_te])
+    
+    classes = sorted(np.unique(y_hybrid).tolist())
+    y_pred_h_str = [classes[i] for i in y_pred_h]
+    
+    recalls = recall_score(y_hybrid[idx_te], y_pred_h_str, average=None, labels=classes)
+    recall_dict = dict(zip(classes, recalls))
+    
+    scratch_recall = recall_dict.get('Scratch', 0)
+    donut_recall = recall_dict.get('Donut', 0)
+    
+    check_gate2_full(scratch_recall, donut_recall, cfg)
+    check_gate3(y_hybrid[idx_te], y_pred_h_str, classes, cfg)
+    
+    print("Updating metrics.csv...")
+    metrics_path = 'results/metrics.csv'
+    if os.path.exists(metrics_path):
+        metrics_df = pd.read_csv(metrics_path)
+        if 'Hybrid' in metrics_df['Model'].values:
+            metrics_df.loc[metrics_df['Model'] == 'Hybrid', 'macro_F1'] = res_hybrid['macro_f1']
+            metrics_df.loc[metrics_df['Model'] == 'Hybrid', 'Scratch_recall'] = scratch_recall
+            metrics_df.loc[metrics_df['Model'] == 'Hybrid', 'Donut_recall'] = donut_recall
+        metrics_df.to_csv(metrics_path, index=False)
+        
+    plot_3way_comparison('results/metrics.csv', save_path='results/figures/3way_comparison.png')
+    print("Validate stage complete.\n")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -134,6 +187,7 @@ Stages:
   features    Feature engineering (20 manual features)
   binary      Binary classification: Normal vs Defect
   multiclass  7-class pattern classification (ML / CNN / Hybrid)
+  validate    Load existing CNN embeddings, train Hybrid, check Gates
   shap        SHAP + Grad-CAM interpretation
   spc         SPC monitoring + Autoencoder anomaly detection
 
@@ -145,7 +199,7 @@ Examples:
     parser.add_argument("--config", default="config.yaml",
                         help="Path to config YAML (default: config.yaml)")
     parser.add_argument("--stage", default="all",
-                        choices=["all", "features", "binary", "multiclass", "shap", "spc"],
+                        choices=["all", "features", "binary", "multiclass", "validate", "shap", "spc"],
                         help="Pipeline stage to run (default: all)")
     args = parser.parse_args()
 
@@ -165,6 +219,9 @@ Examples:
 
     if args.stage in ("all", "multiclass"):
         run_multiclass(cfg)
+        
+    if args.stage in ("all", "validate"):
+        run_validate(cfg)
 
     if args.stage in ("all", "features"):
         print("[features] → src/features.py :: extract_features()")

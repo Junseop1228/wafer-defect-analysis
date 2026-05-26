@@ -1,4 +1,4 @@
-﻿# WM-811K Pipeline Configuration
+# WM-811K Pipeline Configuration
 # All hyperparameters managed here. Never hardcode in src/.
 
 # ── Data ──────────────────────────────────────────────────────────────────
@@ -35,7 +35,7 @@ seed: 42
 # Increase to 50+ on GPU server for final submission
 optuna:
   n_trials_binary: 30
-  n_trials_multiclass: 20
+  n_trials_multiclass: 25
   direction: maximize
   metric: macro_f1
 

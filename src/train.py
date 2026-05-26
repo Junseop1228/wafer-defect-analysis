@@ -251,6 +251,11 @@ def train_hybrid(cfg: dict, X_train, y_train, X_test, y_test, cnn_embeddings_pat
         mlflow.log_params(best_params)
         mlflow.log_metrics({'macro_f1': float(macro_f1_hybrid)})
 
+    import joblib
+    import os
+    os.makedirs('results', exist_ok=True)
+    joblib.dump(xgb_best_hybrid, 'results/hybrid_model.pkl')
+
     return {
         'model': xgb_best_hybrid,
         'macro_f1': float(macro_f1_hybrid)
