@@ -1,10 +1,24 @@
-﻿# Experiment Log — WM-811K Pipeline
+# Experiment Log — WM-811K Pipeline
 
 > Antigravity appends to this file after every execution.
 > Claude.ai reads this for result interpretation and Gate decisions.
 > Format: newest entry at the TOP.
 
 ---
+
+## [2026-05-26 21:05] Stage 3 — Task 0 Domain Interpretation Notebook
+- Branch: agent/task9-domain-interp
+- Command: `conda activate wm811k; python scripts/run_nb_06.py`
+- Result: SUCCESS
+- Metrics:
+  - macro_f1: N/A
+  - scratch_recall: N/A
+  - donut_recall: N/A
+  - binary_defect_recall: N/A
+- Gate: N/A
+- MLflow run_id: N/A
+- Error (if any): None
+- Notes: Created `notebooks/06_domain_interpretation.ipynb` via `scripts/create_nb_06.py`. Verified successfully using `scripts/run_nb_06.py` (Jupyter timeout issues avoided). Generated representative wafer maps grid and extracted SHAP feature importance per class directly from Hybrid XGBoost.
 
 ## [2026-05-26 17:30] Stage 4-2 Part A — ML 7-class Classification (n_trials=20, Near-full merged)
 - Branch: agent/stage42-ml
