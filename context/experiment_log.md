@@ -6,6 +6,16 @@
 
 ---
 
+## [2026-05-26 22:54] Stage 3 — Task 4 run_pipeline.py Wiring
+- Branch: agent/phase3-pipeline
+- Command: `conda activate wm811k; python run_pipeline.py --stage binary --config config.yaml`
+- Result: SUCCESS
+- Metrics: Gate 2 Binary Recall: 0.9146
+- Gate: Gate 2 BINARY — PASSED
+- MLflow run_id: Recorded in mlflow UI
+- Error (if any): None
+- Notes: Wired actual modularized functions into `run_pipeline.py` for `--stage binary` and `--stage multiclass`. Replaced placeholder strings with actual model training and gate evaluation logic. Fixed Unicode printing errors in the console output.
+
 ## [2026-05-26 22:36] Stage 3 — Task 3 CNN 8-class Retraining
 - Branch: agent/phase3-cnn-retrain
 - Command: `conda activate wm811k; python scripts/run_task3_retrain.py`
