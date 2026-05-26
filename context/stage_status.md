@@ -9,9 +9,9 @@
 ## Current Status
 
 - **Active Phase**: Phase 3 — Modularization + Automation
-- **Active Stage**: 준비 중 (plans/phase3_plan.md 미작성)
-- **Last Completed**: Phase 2 — All Gates PASSED
-- **Blocking Item**: plans/phase3_plan.md 작성 필요 (Claude.ai 담당)
+- **Active Stage**: Task 0 — Domain Interpretation Notebook
+- **Last Completed**: Phase 2 완료 + 레포 정리 (12개 문제 처리)
+- **Blocking Item**: 없음. Phase 3 즉시 시작 가능.
 
 ---
 
@@ -20,13 +20,13 @@
 | Phase | Description | Status |
 |-------|-------------|--------|
 | Phase 1 | EDA + Feature Engineering | ✅ Completed |
-| Phase 2 | Modeling notebooks (binary + 7-class + SHAP) | ✅ Completed |
-| Phase 3 | src/ 모듈화 + run_pipeline.py + Gate 자동화 + MLflow | 🔄 Next |
-| Phase 4 | Pseudo-label + AE + SPC + Streamlit + deploy | ⏳ Pending |
+| Phase 2 | Modeling (binary + 7-class + SHAP) | ✅ Completed |
+| Phase 3 | src/ 모듈화 + run_pipeline.py 완성 | 🔄 Active |
+| Phase 4 | Pseudo-label + AE + SPC + Streamlit | ⏳ Pending |
 
 ---
 
-## Gate Status (All Phase 1 & 2 Gates)
+## Gate Status
 
 | Gate | Condition | Threshold | Result |
 |------|-----------|-----------|--------|
@@ -37,9 +37,24 @@
 | Gate 3 | worst confusion pair F1 gap | ≤0.20 | ✅ 0.168 (Loc↔Random) |
 | Gate 4 | SPC ARL | ≥370 | ⏳ Phase 4 |
 
+*Note: Gate 2/3 will be re-verified after CNN 8-class retraining (Phase 3 Task 3)*
+
 ---
 
-## Phase 2 Final Model
+## Phase 3 Task Checklist
+
+| Task | Description | Status |
+|------|-------------|--------|
+| Task 0 | 06_domain_interpretation.ipynb 작성 | ⏳ |
+| Task 1 | src/train.py 구현 (4개 함수) | ⏳ |
+| Task 2 | src/visualize.py 확장 (4개 함수) | ⏳ |
+| Task 3 | CNN 8클래스 재학습 + embeddings 재생성 | ⏳ |
+| Task 4 | run_pipeline.py 스테이지 배선 | ⏳ |
+| Task 5 | End-to-end 실행 검증 | ⏳ |
+
+---
+
+## Phase 2 Final Model (Reference)
 
 | Model | macro F1 | Scratch recall | Donut recall |
 |-------|----------|----------------|--------------|
@@ -47,37 +62,30 @@
 | CNN | 0.787 | 0.774 | 0.838 |
 | **Hybrid (채택)** | **0.870** | **0.795** | **0.784** |
 
-**Adopted model**: Hybrid (21 manual features + 128 CNN embeddings → XGBoost)
-
 ---
 
-## Known Issues → Phase 3 Fix List
+## Known Issues (Being Fixed in Phase 3)
 
-1. CNN 클래스 불일치: CNN이 9클래스(none 포함)로 학습됨 → 8클래스로 재학습 필요
-2. experiment_log.md append 순서: newest-at-top 규칙이 일부 미준수 → Phase 3에서 정리
-3. mlflow.db가 git에 포함됨 → .gitignore에 추가 필요
-4. run_nb_*.py 임시 스크립트들 root에 산재 → Phase 3 src/ 이전 후 삭제
-5. Optuna study 재현성: n_trials=20 (계획 50) → Phase 3에서 config.yaml 조정
+| # | 문제 | Phase 3 Task |
+|---|------|-------------|
+| 1 | CNN 9클래스로 학습됨 (none 포함) | Task 3 |
+| 2 | src/train.py, spc.py, autoencoder.py, pseudo_label.py stub | Task 1 (train), Phase 4 (나머지) |
+| 3 | notebooks 04~07 빈 scaffold | Task 0 + Phase 4 |
+| 4 | config n_trials=50 (실제 20) | config.yaml 수정 완료 ✅ |
 
 ---
 
 ## Environment
 
 - Conda env: `wm811k` ✅ (Python 3.10)
-- PyTorch: CUDA 활성화 완료 (GTX 1650 Max-Q)
-- Data: `data/LSWMD.pkl` ✅, `data/features_labeled_v2.pkl` ✅ (172950×21)
-- CNN weights: `results/cnn_weights.pth` ✅
-- CNN embeddings: `data/cnn_embeddings.npy` ✅ (172950×128)
-- MLflow: `mlruns/`
+- PyTorch: CUDA 활성화 ✅ (GTX 1650 Max-Q)
+- Data: data/LSWMD.pkl ✅, data/features_labeled_v2.pkl ✅
+- CNN weights: results/cnn_weights.pth ⚠️ (9클래스, Task 3에서 교체)
+- CNN embeddings: data/cnn_embeddings.npy ⚠️ (9클래스 기반, Task 3에서 교체)
 
 ---
 
 ## Next Action
 
-Phase 3 시작 전 처리:
-1. dev → main merge + v2.0-phase2 태그
-2. plans/phase3_plan.md 작성 (Claude.ai 담당 — 다음 세션)
-3. Task 9 (Domain Interpretation notebook) — Phase 3 시작 전 완료 권장
-
 Antigravity 입력:
-> "git checkout main; git merge dev; git tag v2.0-phase2; git push origin main --tags; git push origin dev"
+> "plans/phase3_plan.md 읽고 Task 0 실행해줘. dev 기준으로 agent/task9-domain-interp 브랜치 만들어서 시작해줘."

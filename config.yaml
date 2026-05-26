@@ -1,12 +1,15 @@
-# WM-811K Pipeline Configuration
-# Central gate thresholds and cycle limits
+﻿# WM-811K Pipeline Configuration
+# All hyperparameters managed here. Never hardcode in src/.
 
+# ── Data ──────────────────────────────────────────────────────────────────
 data:
   raw_path: data/LSWMD.pkl
-  labeled_output: data/df_labeled.pkl
-  unlabeled_output: data/df_unlabeled.pkl
+  features_v2: data/features_labeled_v2.pkl   # Phase 2 output (172950 x 21)
+  cnn_embeddings: data/cnn_embeddings.npy      # CNN embeddings (172950 x 128)
+  cnn_weights: results/cnn_weights.pth
   resize: 64
 
+# ── Gate Thresholds ───────────────────────────────────────────────────────
 gates:
   gate1:
     min_shap_contribution: 0.01
@@ -24,31 +27,62 @@ cycles:
   max_iterations: 3
   pseudo_label_confidence: 0.95
 
+# ── Reproducibility ───────────────────────────────────────────────────────
 seed: 42
+
+# ── Optuna ────────────────────────────────────────────────────────────────
+# Note: n_trials_multiclass reduced from 50 to 20 (GTX 1650 constraint)
+# Increase to 50+ on GPU server for final submission
 optuna:
   n_trials_binary: 30
-  n_trials_multiclass: 50
+  n_trials_multiclass: 20
   direction: maximize
   metric: macro_f1
+
+# ── Models ────────────────────────────────────────────────────────────────
 models:
   rf:
     n_estimators: 200
+  xgb:
+    tree_method: hist      # GPU-friendly, required for speed on large dataset
+    eval_metric: mlogloss
   cnn:
+    num_classes: 8          # Normal/Edge-Ring/Edge-Loc/Center/Loc/Scratch/Random/Donut
     epochs: 30
     batch_size: 64
     lr: 0.001
     weight_decay: 0.0001
 
+# ── Classes ───────────────────────────────────────────────────────────────
+classes:
+  names:
+    - Normal
+    - Edge-Ring
+    - Edge-Loc
+    - Center
+    - Loc
+    - Scratch
+    - Random
+    - Donut
+  merge_to_normal:
+    - Near-full              # Applied at data load time
+
+# ── MLflow ────────────────────────────────────────────────────────────────
 mlflow:
   experiment_name: wm811k_wafer_defect
   tracking_uri: mlruns/
 
+# ── SPC ───────────────────────────────────────────────────────────────────
 spc:
-  phase1_percentile: 70
+  phase1_percentile: 70    # Top 30% None-ratio lots → stable baseline
   ewma_lambda: 0.2
   cusum_k: 0.5
+  cusum_h: 4.0             # Decision interval (ARL ≈ 370 at this setting)
 
+# ── Feature Engineering ───────────────────────────────────────────────────
 features:
+  total_raw: 28            # Before dropping
+  total_final: 20          # After dropping weak features
   dropped_features:
     - radial_cdf_8
     - radial_cdf_9
@@ -58,3 +92,11 @@ features:
     - edge_sector_4
     - edge_sector_6
     - edge_sector_7
+
+# ── Phase 2 Results (for run_pipeline.py status display) ──────────────────
+results:
+  binary_defect_recall: 0.9146
+  hybrid_f1: 0.870
+  scratch_recall: 0.795
+  donut_recall: 0.784
+  gate3_worst_gap: 0.168
