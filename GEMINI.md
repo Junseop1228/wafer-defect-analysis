@@ -196,3 +196,23 @@ Agent 3 (Gemini Flash) → context/experiment_log.md 업데이트 + Git Sync
 dev 브랜치에 push (Git Sync 완료) 시 자동 트리거:
 - `update_metrics.yml` → `results/metrics.csv` 자동 갱신
 - `README.md` Key Results 테이블 자동 업데이트
+
+---
+
+## 임시 스크립트 정리 규칙
+
+Task 실행을 위해 root에 생성한 임시 스크립트는 Git Sync 전에 반드시 정리한다.
+
+**이동 대상 (root → scripts/ 폴더로 이동)**:
+- un_nb_*.py — 노트북 실행 대체 스크립트
+- create_nb_*.py — 노트북 생성 스크립트
+- un_gate*.py — Gate 체크 스크립트
+- 	hreshold_sweep.py, 	est_import.py 등 1회성 스크립트
+
+**처리 순서**:
+1. scripts/ 폴더가 없으면 생성
+2. 해당 파일들을 scripts/ 로 이동 (Move-Item)
+3. .gitignore에 scripts/ 는 추가하지 않음 (기록 보존 목적)
+4. mlflow.db 는 .gitignore에 포함되어 있으므로 그대로 둠
+
+**절대 root에 남겨두지 않는 파일**: *.py (src/, tests/, notebooks/ 외부)

@@ -1,4 +1,4 @@
-import pandas as pd
+﻿import pandas as pd
 
 # Gate checks + Metric computation
 # Gate1: SHAP / corr  Gate2: Recall  Gate3: confusion pair  Gate4: ARL
@@ -90,8 +90,6 @@ def check_gate2_full(scratch_recall: float, donut_recall: float, cfg: dict) -> d
         print(f"[GATE 2 FULL] FAILED: {', '.join(reasons)}")
 
     return result
-<<<<<<< HEAD
-=======
 
 
 def check_gate3(y_true, y_pred, class_names: list, cfg: dict,
@@ -158,4 +156,4 @@ def check_gate3(y_true, y_pred, class_names: list, cfg: dict,
             print(f"  {p['pair']}: F1_gap={p['f1_gap']:.4f} (A={p['f1_A']}, B={p['f1_B']})")
 
     return result
->>>>>>> agent/stage5-shap
+

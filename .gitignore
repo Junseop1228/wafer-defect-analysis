@@ -1,4 +1,4 @@
-# Data (large files)
+﻿# Data (large files)
 data/*.pkl
 data/*.csv
 
@@ -27,6 +27,17 @@ Thumbs.db
 # Antigravity cache
 .antigravity/cache/
 
-# context/ — commit everything EXCEPT handoff.md (personal session notes)
+# context/ ??commit everything EXCEPT handoff.md (personal session notes)
 # handoff.md is useful locally but noisy on GitHub
 context/handoff.md
+
+# MLflow DB (local tracking only)
+mlflow.db
+
+# Antigravity temp scripts (root-level, generated per task)
+run_nb_*.py
+create_nb_*.py
+run_gate*.py
+test_import.py
+threshold_sweep.py
+merge_branches*.ps1
