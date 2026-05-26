@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial import ConvexHull
 from sklearn.cluster import DBSCAN
+from skimage.transform import radon
 
 # Stage 3 — Feature Engineering Core (Priority 1)
 # Groups: Density / Radial CDF / Angular / Geometry / Morphology / Moran's I / DBSCAN
@@ -38,17 +39,17 @@ def calc_radial_cdf(wafer_map: np.ndarray, n_bins=10) -> list:
         
     return cdf
 
-def calc_angular_features(wafer_map: np.ndarray) -> float:
+def calc_edge_sectors(wafer_map: np.ndarray) -> list:
     coords = extract_defect_coords(wafer_map)
     if len(coords) == 0:
-        return 0.0
+        return [0.0] * 8
         
     h, w = wafer_map.shape
     center_y, center_x = (h - 1) / 2.0, (w - 1) / 2.0
     max_radius = np.sqrt(center_y**2 + center_x**2)
     
     if max_radius == 0:
-        return 0.0
+        return [0.0] * 8
         
     distances = np.sqrt((coords[:, 0] - center_y)**2 + (coords[:, 1] - center_x)**2)
     angles = np.arctan2(coords[:, 0] - center_y, coords[:, 1] - center_x)
@@ -58,7 +59,7 @@ def calc_angular_features(wafer_map: np.ndarray) -> float:
     edge_angles = angles[edge_mask]
     
     if len(edge_angles) == 0:
-        return 0.0
+        return [0.0] * 8
         
     edge_angles_2pi = (edge_angles + 2 * np.pi) % (2 * np.pi)
     sector_bins = np.linspace(0, 2 * np.pi, 9)
@@ -67,6 +68,10 @@ def calc_angular_features(wafer_map: np.ndarray) -> float:
     # Normalize density in sector
     edge_sector = hist / len(coords) 
     
+    return [float(x) for x in edge_sector]
+
+def calc_angular_features(wafer_map: np.ndarray) -> float:
+    edge_sector = calc_edge_sectors(wafer_map)
     return float(np.std(edge_sector))
 
 def calc_geometry(wafer_map: np.ndarray) -> tuple:
@@ -164,6 +169,26 @@ def calc_n_clusters(wafer_map: np.ndarray) -> int:
     n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
     return int(n_clusters)
 
+def calc_lot_consistency(wafer_map: np.ndarray, lot_df=None) -> float:
+    if lot_df is None or 'failureType' not in lot_df.columns or len(lot_df) == 0:
+        return 0.5
+    
+    counts = lot_df['failureType'].value_counts()
+    if len(counts) == 0:
+        return 0.5
+        
+    return float(counts.iloc[0] / len(lot_df))
+
+def calc_radon(wafer_map: np.ndarray) -> float:
+    coords = extract_defect_coords(wafer_map)
+    if len(coords) == 0:
+        return 0.0
+        
+    binary_map = (wafer_map == 2).astype(float)
+    sinogram = radon(binary_map, circle=False)
+    
+    return float(np.max(sinogram))
+
 def extract_features(wafer_map: np.ndarray, lot_df=None) -> dict:
     """
     Extract engineered features from a single wafer map.
@@ -181,7 +206,11 @@ def extract_features(wafer_map: np.ndarray, lot_df=None) -> dict:
     for i in range(10):
         feats[f'radial_cdf_{i}'] = cdf[i]
         
-    feats['edge_sector_std'] = calc_angular_features(wafer_map)
+    edge_sectors = calc_edge_sectors(wafer_map)
+    for i in range(8):
+        feats[f'edge_sector_{i}'] = edge_sectors[i]
+        
+    feats['edge_sector_std'] = float(np.std(edge_sectors))
     
     cx, cy = calc_geometry(wafer_map)
     feats['cx'] = cx
@@ -193,5 +222,8 @@ def extract_features(wafer_map: np.ndarray, lot_df=None) -> dict:
     
     feats['morans_i'] = calc_morans_i(wafer_map)
     feats['n_clusters'] = calc_n_clusters(wafer_map)
+    
+    feats['lot_consistency'] = calc_lot_consistency(wafer_map, lot_df)
+    feats['radon_max_value'] = calc_radon(wafer_map)
     
     return feats
