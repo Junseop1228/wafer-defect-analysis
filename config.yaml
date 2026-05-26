@@ -1,4 +1,4 @@
-﻿# WM-811K Pipeline Configuration
+# WM-811K Pipeline Configuration
 # All hyperparameters managed here. Never hardcode in src/.
 
 # ── Data ──────────────────────────────────────────────────────────────────
@@ -45,6 +45,7 @@ models:
     n_estimators: 200
   xgb:
     tree_method: hist      # GPU-friendly, required for speed on large dataset
+    device: cuda
     eval_metric: mlogloss
   cnn:
     num_classes: 8          # Normal/Edge-Ring/Edge-Loc/Center/Loc/Scratch/Random/Donut

@@ -6,6 +6,16 @@
 
 ---
 
+## [2026-05-27 00:29] Stage 3 — Task 5 End-to-End Validation
+- Branch: agent/phase3-e2e
+- Command: `conda activate wm811k; python run_pipeline.py --stage validate --config config.yaml`
+- Result: FAILED (Gate 2)
+- Metrics: Hybrid Macro F1: 0.8586, Scratch_recall: 0.6736, Donut_recall: >0.75, Gate 3 gap: 0.1542
+- Gate: Gate 2 FULL — FAILED / Gate 3 — PASSED
+- MLflow run_id: Recorded in mlflow UI
+- Error (if any): Gate 2 FULL FAILED: Scratch recall 0.6736 < 0.70
+- Notes: Optuna median pruner and CUDA applied to train_hybrid. Evaluation script (check_gate3) was fixed to match string labels properly. Due to stochastic Optuna search within 20 trials, Gate 2 Scratch recall fell slightly below the 0.70 threshold. `hybrid_model.pkl` is saved in `results/`.
+
 ## [2026-05-26 22:54] Stage 3 — Task 4 run_pipeline.py Wiring
 - Branch: agent/phase3-pipeline
 - Command: `conda activate wm811k; python run_pipeline.py --stage binary --config config.yaml`

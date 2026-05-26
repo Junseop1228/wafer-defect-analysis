@@ -1,4 +1,4 @@
-﻿import pandas as pd
+import pandas as pd
 
 # Gate checks + Metric computation
 # Gate1: SHAP / corr  Gate2: Recall  Gate3: confusion pair  Gate4: ARL
@@ -113,7 +113,7 @@ def check_gate3(y_true, y_pred, class_names: list, cfg: dict,
 
     per_class_f1 = dict(zip(class_names,
                             f1_score(y_true, y_pred, average=None,
-                                     labels=list(range(len(class_names))))))
+                                     labels=class_names)))
 
     pair_results = []
     for classA, classB in confusion_pairs:
