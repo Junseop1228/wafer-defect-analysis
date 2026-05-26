@@ -90,3 +90,72 @@ def check_gate2_full(scratch_recall: float, donut_recall: float, cfg: dict) -> d
         print(f"[GATE 2 FULL] FAILED: {', '.join(reasons)}")
 
     return result
+<<<<<<< HEAD
+=======
+
+
+def check_gate3(y_true, y_pred, class_names: list, cfg: dict,
+                confusion_pairs: list = None) -> dict:
+    """
+    Gate 3: Confusion pair F1 gap <= max_confusion_pair_f1_gap.
+    confusion_pairs: list of (classA, classB) name tuples to check.
+    For each pair, computes |F1(A) - F1(B)| and checks if all gaps <= threshold.
+    Returns worst pair and its gap.
+    """
+    from sklearn.metrics import f1_score
+
+    threshold = cfg["gates"]["gate3"]["max_confusion_pair_f1_gap"]
+
+    if confusion_pairs is None:
+        confusion_pairs = [
+            ("Edge-Ring", "Edge-Loc"),
+            ("Center", "Donut"),
+            ("Loc", "Random"),
+        ]
+
+    per_class_f1 = dict(zip(class_names,
+                            f1_score(y_true, y_pred, average=None,
+                                     labels=list(range(len(class_names))))))
+
+    pair_results = []
+    for classA, classB in confusion_pairs:
+        f1_a = per_class_f1.get(classA, None)
+        f1_b = per_class_f1.get(classB, None)
+        if f1_a is None or f1_b is None:
+            print(f"  [GATE 3] WARNING: '{classA}' or '{classB}' not in class_names, skipping pair.")
+            continue
+        gap = abs(float(f1_a) - float(f1_b))
+        pair_results.append({
+            "pair": f"{classA}<->{classB}",
+            "f1_A": round(float(f1_a), 4),
+            "f1_B": round(float(f1_b), 4),
+            "f1_gap": round(gap, 4),
+            "passed": bool(gap <= threshold),
+        })
+
+    if not pair_results:
+        return {"passed": False, "details": {"error": "No valid pairs found"}}
+
+    worst = max(pair_results, key=lambda x: x["f1_gap"])
+    all_passed = all(p["passed"] for p in pair_results)
+
+    result = {
+        "passed": all_passed,
+        "details": {
+            "threshold": threshold,
+            "worst_pair": worst["pair"],
+            "worst_f1_gap": worst["f1_gap"],
+            "pairs": pair_results,
+        }
+    }
+
+    if all_passed:
+        print(f"[GATE 3] PASSED  Worst pair: {worst['pair']} gap={worst['f1_gap']:.4f} <= {threshold}")
+    else:
+        failed = [p for p in pair_results if not p["passed"]]
+        print(f"[GATE 3] FAILED  {len(failed)} pair(s) exceed threshold {threshold}:")
+        for p in failed:
+            print(f"  {p['pair']}: F1_gap={p['f1_gap']:.4f} (A={p['f1_A']}, B={p['f1_B']})")
+
+    return result
+>>>>>>> agent/stage5-shap
