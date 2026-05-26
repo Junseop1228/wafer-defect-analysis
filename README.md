@@ -23,9 +23,9 @@
 
 | Model | Macro F1 | Scratch Recall | Donut Recall |
 |-------|----------|---------------|--------------|
-| RF (28 features) | TBD | TBD | TBD |
-| Custom CNN | TBD | TBD | TBD |
-| Hybrid | TBD | TBD | TBD |
+| ML (XGBoost, 20 features) | 0.705 | 0.285 | 0.766 |
+| Custom CNN (64×64, 30ep) | 0.787 | 0.774 | 0.838 |
+| **Hybrid (채택)** | **0.870** | **0.795** | **0.784** |
 
 ## Defect → Process Interpretation
 
@@ -50,7 +50,8 @@ python run_pipeline.py --config config.yaml
 `
 
 ## Live Demo
-*Streamlit Cloud link — TBD after deployment*
+*Live Demo: Streamlit Cloud — deployment in Phase 4*
 
 ## Target Role
 Samsung Electronics TSP 평가및분석 / SK Hynix 양산기술 P&T
+

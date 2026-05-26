@@ -1,4 +1,4 @@
-# Experiment Log — WM-811K Pipeline
+﻿# Experiment Log — WM-811K Pipeline
 
 > Antigravity appends to this file after every execution.
 > Claude.ai reads this for result interpretation and Gate decisions.
@@ -184,8 +184,6 @@
 - Error (if any): None (fixed CNN num_classes mismatch 9 vs 8 on retry)
 - Notes: SHAP bar plots saved for all 8 defect classes + shap_summary_table.png. Grad-CAM heatmaps saved for all 9 CNN classes (incl. none). Manual hook-based Grad-CAM implemented without pytorch-grad-cam library.
 
-<<<<<<< HEAD
-=======
 ## [2026-05-26 19:57] Stage 5 — Task 8: Gate 3 Check
 - Branch: agent/stage5-shap
 - Command: `conda activate wm811k; python run_gate3_check.py`
@@ -200,7 +198,6 @@
 - Error (if any): None
 - Notes: check_gate3() implemented in src/evaluate.py. All 3 confusion pairs cleared the F1 gap threshold of 0.20. Worst pair is Loc<->Random (gap 0.168). Proceeding to Phase 2 completion.
 
->>>>>>> agent/stage5-shap
 <!-- APPEND NEW ENTRIES ABOVE THIS LINE -->
 
 ---
@@ -220,3 +217,4 @@
 - MLflow run_id: [id]
 - Notes: ...
 ```
+

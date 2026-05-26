@@ -41,3 +41,7 @@ run_gate*.py
 test_import.py
 threshold_sweep.py
 merge_branches*.ps1
+
+# nbconvert artifacts
+*.nbconvert.ipynb
+
