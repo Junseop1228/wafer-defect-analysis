@@ -1,4 +1,4 @@
-# WM-811K Wafer Defect Classification — Agent Rules
+﻿# WM-811K Wafer Defect Classification — Agent Rules
 # Read by ALL AI agents (Antigravity, Claude Code, Cursor, etc.)
 # Last updated: 2026-05-22
 
@@ -181,12 +181,7 @@ Gate 실패 시: `context/experiment_log.md`에 실패 상세 기록 후 정지.
 
 ## Branch Strategy
 
-```
-main     ← Gate 통과한 것만. 포트폴리오 클린 상태
-dev      ← 일상 개발. main으로 PR
-stage/N  ← Stage별 작업 브랜치
-agent/X  ← Antigravity 전용. dev로 PR (사람이 리뷰 후 머지)
-```
+→ **See GIT_AND_DIRECTORY.md** for full git strategy, directory rules, and CI/CD trigger map.
 
 ---
 
@@ -198,3 +193,4 @@ agent/X  ← Antigravity 전용. dev로 PR (사람이 리뷰 후 머지)
 - conda install 사용 금지 — pip install만 (wm811k env 안에서)
 - plans/에 명시되지 않은 작업 범위 확장 금지
 - context/ 파일을 plans/ 지시 없이 임의로 수정 금지
+
