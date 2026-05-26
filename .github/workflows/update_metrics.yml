@@ -1,4 +1,4 @@
-﻿name: Update Metrics
+name: Update Metrics
 
 on:
   push:
@@ -6,7 +6,9 @@ on:
       - 'context/experiment_log.md'
     branches:
       - dev
-      - 'agent/**'
+
+permissions:
+  contents: write
 
 jobs:
   update-metrics:
