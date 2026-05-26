@@ -24,10 +24,15 @@ cycles:
   max_iterations: 3
   pseudo_label_confidence: 0.95
 
+seed: 42
 optuna:
-  n_trials: 50
+  n_trials_binary: 30
+  n_trials_multiclass: 50
   direction: maximize
   metric: macro_f1
+models:
+  rf:
+    n_estimators: 200
 
 mlflow:
   experiment_name: wm811k_wafer_defect

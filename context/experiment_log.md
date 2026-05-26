@@ -93,6 +93,20 @@
 - Feature set: data/features_labeled_v2.pkl (21 features)
 - Notes: Cycle ① terminated. Remaining 4 weak features (radial_cdf_7, edge_sector_0/5/std) are domain-meaningful and retained. Removal pattern identified as XGBoost competitive artifact. Correlation pairs: 0. Proceeding to Phase 2.
 
+## [2026-05-26 17:00] Stage 4-1 — Binary Classification Notebook
+- Branch: agent/stage41-binary
+- Command: `conda activate wm811k; python run_nb_code.py`
+- Result: SUCCESS
+- Metrics:
+  - macro_f1: 0.93
+  - scratch_recall: N/A
+  - donut_recall: N/A
+  - binary_defect_recall: 0.8225
+- Gate: Gate 2 — FAILED
+- MLflow run_id: auto
+- Error (if any): None
+- Notes: Optuna best value was 0.9145 but test binary_defect_recall was 0.8225 (< 0.90 threshold). Gate 2 Binary Check failed. Executed notebook code via `run_nb_code.py` because `jupyter nbconvert` requires `ipykernel` which was missing from the env and forbidden to install. 
+
 <!-- APPEND NEW ENTRIES ABOVE THIS LINE -->
 
 ---

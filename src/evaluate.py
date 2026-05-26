@@ -40,3 +40,19 @@ def check_gate1(shap_values: dict, corr_matrix: pd.DataFrame, cfg: dict) -> dict
     except Exception as e:
         print(f"[GATE 1] FAILED: Exception occurred - {str(e)}")
         return {"passed": False, "details": {"error": str(e)}}
+
+def check_gate2_binary(recall: float, cfg: dict) -> dict:
+    threshold = cfg["gates"]["gate2"]["stage1_min_defect_recall"]
+    passed = bool(recall >= threshold)
+    
+    result = {
+        "passed": passed,
+        "details": {"binary_defect_recall": float(recall), "threshold": threshold}
+    }
+    
+    if passed:
+        print(f"[GATE 2 BINARY] PASSED (Recall: {recall:.4f} >= {threshold})")
+    else:
+        print(f"[GATE 2 BINARY] FAILED (Recall: {recall:.4f} < {threshold})")
+        
+    return result
