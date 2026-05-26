@@ -45,3 +45,5 @@ merge_branches*.ps1
 # nbconvert artifacts
 *.nbconvert.ipynb
 
+
+data/*.npy
