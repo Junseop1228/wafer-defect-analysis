@@ -9,8 +9,8 @@
 ## Current Status
 
 - **Active Phase**: Phase 3 — Modularization + Automation
-- **Active Stage**: Task 1 — src/train.py 구현
-- **Last Completed**: Task 0 — 06_domain_interpretation.ipynb (SUCCESS)
+- **Active Stage**: Task 2 — src/visualize.py 확장
+- **Last Completed**: Task 1 — src/train.py 4개 함수 구현 (SUCCESS)
 - **Blocking Item**: 없음.
 
 ---
@@ -46,8 +46,8 @@
 | Task | Description | Status |
 |------|-------------|--------|
 | Task 0 | 06_domain_interpretation.ipynb 작성 | ✅ Completed |
-| Task 1 | src/train.py 구현 (4개 함수) | 🔄 Active |
-| Task 2 | src/visualize.py 확장 (4개 함수) | ⏳ |
+| Task 1 | src/train.py 구현 (4개 함수) | ✅ Completed |
+| Task 2 | src/visualize.py 확장 (4개 함수) | 🔄 Active |
 | Task 3 | CNN 8클래스 재학습 + embeddings 재생성 | ⏳ |
 | Task 4 | run_pipeline.py 스테이지 배선 | ⏳ |
 | Task 5 | End-to-end 실행 검증 | ⏳ |
@@ -69,8 +69,7 @@
 | # | 문제 | Phase 3 Task |
 |---|------|-------------|
 | 1 | CNN 9클래스로 학습됨 (none 포함) | Task 3 |
-| 2 | src/train.py stub | Task 1 (Active) |
-| 3 | src/spc.py, autoencoder.py, pseudo_label.py stub | Phase 4 |
+| 2 | src/spc.py, autoencoder.py, pseudo_label.py stub | Phase 4 |
 
 ---
 
@@ -87,4 +86,4 @@
 ## Next Action
 
 Antigravity 입력:
-> "plans/phase3_plan.md 읽고 Task 1 실행해줘. dev 기준으로 agent/phase3-train 브랜치 만들어서 시작해줘."
+> "plans/phase3_plan.md 읽고 Task 2 실행해줘. dev 기준으로 agent/phase3-visualize 브랜치 만들어서 시작해줘."
