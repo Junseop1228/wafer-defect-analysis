@@ -6,7 +6,17 @@
 
 ---
 
-## [2026-05-27 00:29] Stage 3 — Task 5 End-to-End Validation
+## [2026-05-27 01:13] Stage 3 — Task 5 End-to-End Validation (Rerun)
+- Branch: agent/phase3-e2e
+- Command: `conda activate wm811k; python run_pipeline.py --stage validate --config config.yaml`
+- Result: FAILED (Gate 2)
+- Metrics: Hybrid Macro F1: 0.8581, Scratch_recall: 0.6653, Donut_recall: >0.75, Gate 3 gap: 0.1528
+- Gate: Gate 2 FULL — FAILED / Gate 3 — PASSED
+- MLflow run_id: Recorded in mlflow UI
+- Error (if any): Gate 2 FULL FAILED: Scratch recall 0.6653 < 0.70
+- Notes: Reverted MedianPruner and CUDA changes, increased trials to 25. Gate 2 still failed marginally (0.6653) due to stochasticity.
+
+
 - Branch: agent/phase3-e2e
 - Command: `conda activate wm811k; python run_pipeline.py --stage validate --config config.yaml`
 - Result: FAILED (Gate 2)

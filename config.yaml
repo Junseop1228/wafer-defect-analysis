@@ -35,7 +35,7 @@ seed: 42
 # Increase to 50+ on GPU server for final submission
 optuna:
   n_trials_binary: 30
-  n_trials_multiclass: 20
+  n_trials_multiclass: 25
   direction: maximize
   metric: macro_f1
 
@@ -45,7 +45,6 @@ models:
     n_estimators: 200
   xgb:
     tree_method: hist      # GPU-friendly, required for speed on large dataset
-    device: cuda
     eval_metric: mlogloss
   cnn:
     num_classes: 8          # Normal/Edge-Ring/Edge-Loc/Center/Loc/Scratch/Random/Donut

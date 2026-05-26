@@ -225,19 +225,15 @@ def train_hybrid(cfg: dict, X_train, y_train, X_test, y_test, cnn_embeddings_pat
             'num_class': len(np.unique(y_train)),
             'random_state': cfg['seed'],
             'n_jobs': -1,
-            'tree_method': cfg['models']['xgb']['tree_method'],
-            'device': cfg['models']['xgb'].get('device', 'cpu')
+            'tree_method': cfg['models']['xgb']['tree_method']
         }
         model = xgb.XGBClassifier(**params)
         model.fit(X_train, y_train, sample_weight=compute_sample_weight('balanced', y_train))
         preds = model.predict(X_test)
         return f1_score(y_test, preds, average='macro')
 
-    study_hybrid = optuna.create_study(
-        direction=cfg['optuna']['direction'],
-        pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=0)
-    )
-    study_hybrid.optimize(objective_hybrid, n_trials=cfg['optuna']['n_trials_multiclass'], show_progress_bar=True)
+    study_hybrid = optuna.create_study(direction=cfg['optuna']['direction'])
+    study_hybrid.optimize(objective_hybrid, n_trials=cfg['optuna']['n_trials_multiclass'], show_progress_bar=False)
 
     best_params = study_hybrid.best_params
     best_params['objective'] = 'multi:softmax'
@@ -245,7 +241,6 @@ def train_hybrid(cfg: dict, X_train, y_train, X_test, y_test, cnn_embeddings_pat
     best_params['random_state'] = cfg['seed']
     best_params['n_jobs'] = -1
     best_params['tree_method'] = cfg['models']['xgb']['tree_method']
-    best_params['device'] = cfg['models']['xgb'].get('device', 'cpu')
 
     with mlflow.start_run(run_name="stage42_hybrid"):
         xgb_best_hybrid = xgb.XGBClassifier(**best_params)
