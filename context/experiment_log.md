@@ -6,6 +6,19 @@
 
 ---
 
+## [2026-05-26 17:30] Stage 4-2 Part A — ML 7-class Classification (n_trials=20, Near-full merged)
+- Branch: agent/stage42-ml
+- Command: `conda activate wm811k; python run_nb_ml_multiclass.py`
+- Result: SUCCESS
+- Metrics:
+  - macro_f1: 0.7047
+  - scratch_recall: 0.2845
+  - donut_recall: 0.7658
+- Gate: N/A
+- MLflow run_id: N/A
+- Error (if any): None
+- Notes: 'Near-full' class replaced with 'Normal'. Optuna trials increased to 20.
+
 ## [2026-05-26 17:20] Stage 4-2 Part A — ML 7-class Classification
 - Branch: agent/stage42-ml
 - Command: `conda activate wm811k; python run_nb_ml_multiclass.py`

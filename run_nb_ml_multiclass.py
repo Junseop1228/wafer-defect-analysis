@@ -15,6 +15,7 @@ cfg = yaml.safe_load(open('config.yaml'))
 mlflow.set_experiment("wafer_defect_phase2")
 
 df = pd.read_pickle('data/features_labeled_v2.pkl')
+df['failureType'] = df['failureType'].replace('Near-full', 'Normal')
 FEATURE_COLS = [c for c in df.columns if c != 'failureType']
 
 le = LabelEncoder()
@@ -71,7 +72,7 @@ def objective_mc(trial):
     return f1_score(y_te, preds, average='macro')
 
 study_mc = optuna.create_study(direction='maximize')
-study_mc.optimize(objective_mc, n_trials=3, show_progress_bar=True)
+study_mc.optimize(objective_mc, n_trials=20, show_progress_bar=True)
 
 best_params = study_mc.best_params
 best_params['objective'] = 'multi:softmax'
