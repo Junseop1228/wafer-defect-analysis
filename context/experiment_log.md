@@ -6,6 +6,18 @@
 
 ---
 
+## [2026-05-26 22:36] Stage 3 — Task 3 CNN 8-class Retraining
+- Branch: agent/phase3-cnn-retrain
+- Command: `conda activate wm811k; python scripts/run_task3_retrain.py`
+- Result: SUCCESS
+- Metrics: 
+  - CNN macro_F1: 0.7570
+  - Hybrid macro_F1: 0.8601
+- Gate: N/A
+- MLflow run_id: Recorded in mlflow UI
+- Error (if any): None
+- Notes: Merged `Near-full` and `none` classes into `Normal` to align with 172950 labeled images (8 classes). Retrained CNN, updated `results/cnn_weights.pth`, regenerated `data/cnn_embeddings.npy` (172950 x 128), and retrained the Hybrid model with the new embeddings. Results updated in `results/metrics.csv`.
+
 ## [2026-05-26 21:28] Stage 3 — Task 2 src/visualize.py Expansion
 - Branch: agent/phase3-visualize
 - Command: `conda activate wm811k; python -c "from src.visualize import plot_confusion_matrix, plot_shap_summary, plot_3way_comparison, plot_gradcam; print('All visualize functions importable')"; flake8 src/visualize.py`

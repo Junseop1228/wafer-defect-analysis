@@ -9,8 +9,8 @@
 ## Current Status
 
 - **Active Phase**: Phase 3 — Modularization + Automation
-- **Active Stage**: Task 2 — src/visualize.py 확장
-- **Last Completed**: Task 1 — src/train.py 4개 함수 구현 (SUCCESS)
+- **Active Stage**: Task 3 — CNN 8클래스 재학습 + embeddings 재생성
+- **Last Completed**: Task 2 — src/visualize.py 4개 함수 확장 (SUCCESS)
 - **Blocking Item**: 없음.
 
 ---
@@ -37,7 +37,7 @@
 | Gate 3 | worst confusion pair F1 gap | ≤0.20 | ✅ 0.168 (Loc↔Random) |
 | Gate 4 | SPC ARL | ≥370 | ⏳ Phase 4 |
 
-*Note: Gate 2/3 will be re-verified after CNN 8-class retraining (Phase 3 Task 3)*
+*Note: Gate 2/3 will be re-verified after CNN 8-class retraining (Task 3)*
 
 ---
 
@@ -47,8 +47,8 @@
 |------|-------------|--------|
 | Task 0 | 06_domain_interpretation.ipynb 작성 | ✅ Completed |
 | Task 1 | src/train.py 구현 (4개 함수) | ✅ Completed |
-| Task 2 | src/visualize.py 확장 (4개 함수) | 🔄 Active |
-| Task 3 | CNN 8클래스 재학습 + embeddings 재생성 | ⏳ |
+| Task 2 | src/visualize.py 확장 (4개 함수) | ✅ Completed |
+| Task 3 | CNN 8클래스 재학습 + embeddings 재생성 | 🔄 Active |
 | Task 4 | run_pipeline.py 스테이지 배선 | ⏳ |
 | Task 5 | End-to-end 실행 검증 | ⏳ |
 
@@ -62,13 +62,15 @@
 | CNN | 0.787 | 0.774 | 0.838 |
 | **Hybrid (채택)** | **0.870** | **0.795** | **0.784** |
 
+*CNN/Hybrid 수치는 Task 3 완료 후 재확인 필요*
+
 ---
 
 ## Known Issues (Being Fixed in Phase 3)
 
 | # | 문제 | Phase 3 Task |
 |---|------|-------------|
-| 1 | CNN 9클래스로 학습됨 (none 포함) | Task 3 |
+| 1 | CNN 9클래스로 학습됨 (none 포함) | Task 3 ← 현재 |
 | 2 | src/spc.py, autoencoder.py, pseudo_label.py stub | Phase 4 |
 
 ---
@@ -78,12 +80,12 @@
 - Conda env: `wm811k` ✅ (Python 3.10)
 - PyTorch: CUDA 활성화 ✅ (GTX 1650 Max-Q)
 - Data: data/LSWMD.pkl ✅, data/features_labeled_v2.pkl ✅
-- CNN weights: results/cnn_weights.pth ⚠️ (9클래스, Task 3에서 교체)
-- CNN embeddings: data/cnn_embeddings.npy ⚠️ (9클래스 기반, Task 3에서 교체)
+- CNN weights: results/cnn_weights.pth ⚠️ (9클래스 → Task 3에서 교체)
+- CNN embeddings: data/cnn_embeddings.npy ⚠️ (9클래스 기반 → Task 3에서 교체)
 
 ---
 
 ## Next Action
 
 Antigravity 입력:
-> "plans/phase3_plan.md 읽고 Task 2 실행해줘. dev 기준으로 agent/phase3-visualize 브랜치 만들어서 시작해줘."
+> "plans/phase3_plan.md 읽고 Task 3 실행해줘. dev 기준으로 agent/phase3-cnn-retrain 브랜치 만들어서 시작해줘."
