@@ -1,1 +1,4 @@
-﻿experiment_id,model_type,feature_version,macro_f1,scratch_recall,donut_recall,gate1,gate2,gate3,timestamp
+Model,macro_F1,Scratch_recall,Donut_recall
+ML (XGBoost),0.7047041419215928,0.28451882845188287,0.7657657657657657
+CNN,0.7873816654430789,0.7740585774058577,0.8378378378378378
+Hybrid,0.8696146007952535,0.7949790794979079,0.7837837837837838

@@ -158,6 +158,19 @@
 - Error (if any): None
 - Notes: Epoch 30. Pre-resized 172950 wafer maps to 64x64 to accelerate training. Model weights saved to `results/cnn_weights.pth`. Extracted 128-dim embeddings saved to `data/cnn_embeddings.npy`.
 
+## [2026-05-26 19:24] Stage 4-2 Part C — Hybrid Classification
+- Branch: agent/stage42-hybrid
+- Command: `conda activate wm811k; python run_nb_hybrid_multiclass.py`
+- Result: SUCCESS
+- Metrics:
+  - macro_f1: 0.8696
+  - scratch_recall: 0.7950
+  - donut_recall: 0.7838
+- Gate: Gate 2 — PASSED (binary, scratch ≥ 0.70, donut ≥ 0.75)
+- MLflow run_id: auto
+- Error (if any): None
+- Notes: Optuna 20 trials. Hybrid model combining 21 manual features + 128 CNN embeddings (149 dims total, corrected to 148 due to 'failureType' label extraction). Macro F1 dramatically improved to 0.87. `results/metrics.csv` 3-way comparison table generated successfully.
+
 <!-- APPEND NEW ENTRIES ABOVE THIS LINE -->
 
 ---
