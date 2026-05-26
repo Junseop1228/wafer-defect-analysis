@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.spatial import ConvexHull
 from sklearn.cluster import DBSCAN
-from skimage.transform import radon
+from sklearn.decomposition import PCA
 
 # Stage 3 — Feature Engineering Core (Priority 1)
 # Groups: Density / Radial CDF / Angular / Geometry / Morphology / Moran's I / DBSCAN
@@ -179,15 +179,17 @@ def calc_lot_consistency(wafer_map: np.ndarray, lot_df=None) -> float:
         
     return float(counts.iloc[0] / len(lot_df))
 
-def calc_radon(wafer_map: np.ndarray) -> float:
+def calc_linearity_pca(wafer_map: np.ndarray) -> float:
     coords = extract_defect_coords(wafer_map)
-    if len(coords) == 0:
+    if len(coords) < 2:
         return 0.0
         
-    binary_map = (wafer_map == 2).astype(float)
-    sinogram = radon(binary_map, circle=False)
+    pca = PCA(n_components=2)
+    pca.fit(coords)
     
-    return float(np.max(sinogram))
+    # Ratio of variance explained by the first principal component
+    explained_variance = pca.explained_variance_ratio_
+    return float(explained_variance[0])
 
 def extract_features(wafer_map: np.ndarray, lot_df=None) -> dict:
     """
@@ -198,6 +200,21 @@ def extract_features(wafer_map: np.ndarray, lot_df=None) -> dict:
     Returns:
         dict of feature name -> float value
     """
+    coords = extract_defect_coords(wafer_map)
+    if len(coords) == 0:
+        feats = {
+            'defect_ratio': 0.0,
+            'edge_sector_std': 0.0,
+            'cx': 0.0, 'cy': 0.0,
+            'compactness': 0.0, 'aspect_ratio': 0.0,
+            'morans_i': 0.0, 'n_clusters': 0,
+            'lot_consistency': calc_lot_consistency(wafer_map, lot_df),
+            'linearity_pca': 0.0
+        }
+        for i in range(10): feats[f'radial_cdf_{i}'] = 0.0
+        for i in range(8): feats[f'edge_sector_{i}'] = 0.0
+        return feats
+
     feats = {}
     
     feats['defect_ratio'] = calc_defect_ratio(wafer_map)
@@ -224,6 +241,6 @@ def extract_features(wafer_map: np.ndarray, lot_df=None) -> dict:
     feats['n_clusters'] = calc_n_clusters(wafer_map)
     
     feats['lot_consistency'] = calc_lot_consistency(wafer_map, lot_df)
-    feats['radon_max_value'] = calc_radon(wafer_map)
+    feats['linearity_pca'] = calc_linearity_pca(wafer_map)
     
     return feats

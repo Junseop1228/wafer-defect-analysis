@@ -32,6 +32,19 @@
 - MLflow run_id: N/A
 - Notes: Implemented calc_edge_sectors, calc_lot_consistency, and calc_radon. extract_features now successfully returns all 28 features.
 
+## [2026-05-26 16:00] Stage 3 — Feature Matrix Construction (Task 5)
+- Branch: agent/stage3-feature-matrix
+- Command: `conda activate wm811k; jupyter nbconvert --to notebook --execute notebooks/02_feature_engineering.ipynb --ExecutePreprocessor.timeout=-1`
+- Result: SUCCESS
+- Metrics:
+  - macro_f1: N/A
+  - scratch_recall: N/A
+  - donut_recall: N/A
+  - binary_defect_recall: N/A
+- Gate: N/A
+- MLflow run_id: N/A
+- Notes: Replaced radon with PCA linearity for speed. Used joblib Parallel(n_jobs=-1) with loky backend and early returns for None class (0 defects) to optimize processing. Generated data/features_labeled.pkl with shape (172950, 29) and 0 nulls. Saved feature correlation heatmap.
+
 <!-- APPEND NEW ENTRIES ABOVE THIS LINE -->
 
 ---
