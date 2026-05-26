@@ -6,6 +6,19 @@
 
 ---
 
+## [2026-05-26 16:24] Stage 4-1 — Task 0 features.py Sync
+- Branch: agent/phase2-features-sync
+- Command: `conda activate wm811k; python -c "import numpy as np, yaml; from src.features import extract_features; cfg = yaml.safe_load(open('config.yaml')); test_map = np.random.choice([0,1,2], size=(64,64), p=[0.3,0.5,0.2]); feats = extract_features(test_map, drop_list=cfg['features']['dropped_features']); print(f'Feature count: {len(feats)} (expected 20)'); assert len(feats) == 20; print('PASS')"`
+- Result: SUCCESS
+- Metrics:
+  - macro_f1: N/A
+  - scratch_recall: N/A
+  - donut_recall: N/A
+  - binary_defect_recall: N/A
+- Gate: N/A
+- MLflow run_id: N/A
+- Notes: `data/features_labeled_v2.pkl` has 21 columns (20 features + 1 label), not 22 columns as initially stated in the plan. Identified exactly 8 dropped features (`radial_cdf_8`, `radial_cdf_9`, `edge_sector_1`, `edge_sector_2`, `edge_sector_3`, `edge_sector_4`, `edge_sector_6`, `edge_sector_7`) and added them to `config.yaml`. Modified `extract_features` to support `drop_list` parameter. Output feature count matches the 20 features in `v2.pkl` perfectly. Task completed successfully.
+
 ## [2026-05-22 17:24] Stage 3 — Feature Engineering Core (Priority 1)
 - Branch: agent/stage3-features-core
 - Command: `conda activate wm811k; python -c "import numpy as np; from src.features import extract_features; test_map = np.random.choice([0,1,2], size=(64,64), p=[0.3,0.5,0.2]); feats = extract_features(test_map); print(f'Feature count: {len(feats)}'); print(feats)"`

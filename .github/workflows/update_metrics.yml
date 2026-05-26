@@ -1,4 +1,4 @@
-name: Update Metrics
+﻿name: Update Metrics
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - 'context/experiment_log.md'
     branches:
       - dev
-      - 'stage/**'
+      - 'agent/**'
 
 jobs:
   update-metrics:
@@ -146,3 +146,4 @@ jobs:
           git add results/metrics.csv README.md
           git diff --staged --quiet || git commit -m "chore: auto-update metrics from experiment_log [skip ci]"
           git push
+

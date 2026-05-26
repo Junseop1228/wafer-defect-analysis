@@ -10,7 +10,7 @@
 
 - **Active Phase**: Phase 2 — Modeling
 - **Active Stage**: Stage 4-1 — Binary Classification
-- **Last Completed**: Stage 3 Feature Engineering & Gate 1 Checks
+- **Last Completed**: Stage 3 Feature Engineering & Gate 1 PASSED
 - **Last Updated**: 2026-05-26
 
 ---
@@ -31,7 +31,7 @@
 | Stage | Description | Status | Gate |
 |-------|-------------|--------|------|
 | Stage 2 | EDA (distribution, t-SNE, correlation) | ✅ Completed | — |
-| Stage 3 | Feature Engineering (28 features) | ✅ Completed | Gate 1 |
+| Stage 3 | Feature Engineering (21 features confirmed) | ✅ Completed | Gate 1 ✅ |
 | Stage 4-1 | Binary classification (Normal vs Defect) | 🔄 In Progress | Gate 2 |
 | Stage 4-2 | 7-class pattern classification (ML/CNN/Hybrid) | ⏳ Not Started | Gate 2 |
 | Stage 5 | SHAP + Grad-CAM interpretation | ⏳ Not Started | Gate 3 |
@@ -57,12 +57,17 @@
 - Conda env: `wm811k` ✅ (Python 3.10, all packages installed)
 - Torch: 2.12.0+cpu ✅
 - Data file: `data/LSWMD.pkl` ✅ (2.0 GB, ready)
+- Feature data: `data/features_labeled_v2.pkl` ✅ (172950 × 22, 21 features)
 - MLflow tracking: `mlruns/`
 
 ---
 
 ## Next Action
 
-1. Antigravity: "plans/phase1_plan.md 읽고 Task 1 실행해줘"
-   - notebooks/01_EDA.ipynb 실행
-   - results/figures/class_distribution.png, sample_wafers.png 생성
+Phase 2 시작 — plans/phase2_plan.md 기준
+
+1. **Task 0**: src/features.py 정합 수정 (21개 피처 drop 반영)
+2. **Task 1**: notebooks/03_binary_classification.ipynb 작성 및 실행
+3. Gate 2 binary check → Claude.ai 해석
+
+Antigravity 입력: "plans/phase2_plan.md 읽고 Task 0 실행해줘"

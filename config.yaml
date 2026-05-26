@@ -1,4 +1,4 @@
-﻿# WM-811K Pipeline Configuration
+# WM-811K Pipeline Configuration
 # Central gate thresholds and cycle limits
 
 data:
@@ -37,3 +37,14 @@ spc:
   phase1_percentile: 70
   ewma_lambda: 0.2
   cusum_k: 0.5
+
+features:
+  dropped_features:
+    - radial_cdf_8
+    - radial_cdf_9
+    - edge_sector_1
+    - edge_sector_2
+    - edge_sector_3
+    - edge_sector_4
+    - edge_sector_6
+    - edge_sector_7

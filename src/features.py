@@ -191,12 +191,13 @@ def calc_linearity_pca(wafer_map: np.ndarray) -> float:
     explained_variance = pca.explained_variance_ratio_
     return float(explained_variance[0])
 
-def extract_features(wafer_map: np.ndarray, lot_df=None) -> dict:
+def extract_features(wafer_map: np.ndarray, lot_df=None, drop_list=None) -> dict:
     """
     Extract engineered features from a single wafer map.
     Args:
         wafer_map: 2D array with values 0=outside, 1=normal, 2=defect
         lot_df: optional DataFrame with lotName and failureType columns
+        drop_list: optional list of feature names to drop
     Returns:
         dict of feature name -> float value
     """
@@ -213,6 +214,11 @@ def extract_features(wafer_map: np.ndarray, lot_df=None) -> dict:
         }
         for i in range(10): feats[f'radial_cdf_{i}'] = 0.0
         for i in range(8): feats[f'edge_sector_{i}'] = 0.0
+        
+        if drop_list:
+            for k in drop_list:
+                feats.pop(k, None)
+                
         return feats
 
     feats = {}
@@ -243,4 +249,8 @@ def extract_features(wafer_map: np.ndarray, lot_df=None) -> dict:
     feats['lot_consistency'] = calc_lot_consistency(wafer_map, lot_df)
     feats['linearity_pca'] = calc_linearity_pca(wafer_map)
     
+    if drop_list:
+        for k in drop_list:
+            feats.pop(k, None)
+            
     return feats
