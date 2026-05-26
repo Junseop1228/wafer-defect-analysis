@@ -105,9 +105,9 @@ def test_check_gate3_pass():
     import yaml, numpy as np
     from src.evaluate import check_gate3
     cfg = yaml.safe_load(open('config.yaml'))
-    # Perfect predictions — all gaps = 0
     class_names = ['Normal','Edge-Ring','Edge-Loc','Center','Loc','Scratch','Random','Donut']
-    y_true = list(range(8)) * 10
+    # Perfect predictions using string labels
+    y_true = [class_names[i % 8] for i in range(80)]
     y_pred = y_true[:]
     result = check_gate3(y_true, y_pred, class_names=class_names, cfg=cfg)
     assert result['passed'] is True
@@ -117,8 +117,8 @@ def test_check_gate3_fail():
     from src.evaluate import check_gate3
     cfg = yaml.safe_load(open('config.yaml'))
     class_names = ['Normal','Edge-Ring','Edge-Loc','Center','Loc','Scratch','Random','Donut']
-    # Edge-Ring always predicted as Edge-Loc → huge gap
-    y_true = [1]*50 + [2]*50 + list(range(8))*10
-    y_pred = [2]*50 + [2]*50 + list(range(8))*10
+    # Edge-Ring always predicted as Edge-Loc using string labels
+    y_true = ['Edge-Ring']*50 + ['Edge-Loc']*50 + [class_names[i % 8] for i in range(80)]
+    y_pred = ['Edge-Loc']*50 + ['Edge-Loc']*50 + [class_names[i % 8] for i in range(80)]
     result = check_gate3(y_true, y_pred, class_names=class_names, cfg=cfg)
     assert result['passed'] is False
