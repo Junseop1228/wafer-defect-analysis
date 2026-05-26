@@ -145,6 +145,19 @@
 - MLflow run_id: N/A
 - Error (if any): None
 - Notes: Evaluated existing XGBoost model with `scale_pos_weight` properly applied. Swept probability threshold from 0.25 to 0.50. Recall >= 0.90 was achieved up to threshold 0.50 (Recall 0.9146). Selected 0.50 as the optimal threshold maximizing F1.
+## [2026-05-26 17:45] Stage 4-2 Part B — CNN Multiclass Classification
+- Branch: agent/stage42-cnn
+- Command: `conda activate wm811k; python run_nb_cnn_multiclass.py`
+- Result: SUCCESS
+- Metrics:
+  - macro_f1: 0.79
+  - scratch_recall: 0.77
+  - donut_recall: 0.84
+- Gate: Gate 3 — N/A (Part C Hybrid 모델에서 Gate 판단 예정)
+- MLflow run_id: auto
+- Error (if any): None
+- Notes: Epoch 30. Pre-resized 172950 wafer maps to 64x64 to accelerate training. Model weights saved to `results/cnn_weights.pth`. Extracted 128-dim embeddings saved to `data/cnn_embeddings.npy`.
+
 <!-- APPEND NEW ENTRIES ABOVE THIS LINE -->
 
 ---
