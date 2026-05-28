@@ -6,6 +6,27 @@
 
 ---
 
+## [2026-05-28 16:48] Stage 4 — Task 1 Pseudo-labeling (Scratch Confidence >= 0.80)
+- Branch: agent/phase4-pseudo
+- Command: `conda activate wm811k; $env:PYTHONPATH="."; python scripts/run_task1.py; python scripts/append_scratch_pseudo.py`
+- Result: SUCCESS (Scratch pseudo label target met)
+- Metrics: Total Accepted: 21640 (19837 @0.95 + 1803 Scratch @0.80)
+  - class_dist: {'Loc': 15871, 'Edge-Loc': 3153, 'Normal': 600, 'Center': 190, 'Scratch': 1826}
+- Gate: N/A
+- MLflow run_id: auto
+- Error (if any): None
+- Notes: Executed two-step pseudo-labeling. General classes were filtered at 0.95 confidence, but Scratch class was lowered to 0.80. Secured 1,826 Scratch pseudo labels (surpassing the >= 50 target). `data/features_augmented.pkl` successfully generated.
+
+## [2026-05-28 14:38] Stage 3 — Task 5 End-to-End Validation (Composite Penalty & Weights)
+- Branch: agent/phase3-e2e
+- Command: `rm results/hybrid_model.pkl; conda activate wm811k; python run_pipeline.py --stage validate`
+- Result: FAILED (Gate 2)
+- Metrics: Scratch_recall: 0.6778, Gate 3 worst gap (Edge-Ring<->Edge-Loc): 0.1476
+- Gate: Gate 2 FULL — FAILED / Gate 3 — PASSED
+- MLflow run_id: auto
+- Error (if any): [GATE 2 FULL] FAILED: Scratch recall 0.6778 < 0.7
+- Notes: Applied composite score penalty (Scratch max 2.0, Donut max 1.0) and 3x sample_weight for Scratch class in `train_hybrid`. Re-ran Optuna with `n_warmup_steps=10`. Still failed Gate 2 Scratch recall requirement.
+
 ## [2026-05-27 01:13] Stage 3 — Task 5 End-to-End Validation (Rerun)
 - Branch: agent/phase3-e2e
 - Command: `conda activate wm811k; python run_pipeline.py --stage validate --config config.yaml`

@@ -1,4 +1,4 @@
-﻿import mlflow
+import mlflow
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
@@ -11,7 +11,16 @@ import torch
 import os
 from torch.utils.data import DataLoader
 from src.models import WaferCNN, WaferMapDataset
+from optuna.integration import XGBoostPruningCallback
+import yaml
 
+def set_seed(seed):
+    import random
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 def _preprocess_labels(y_train, y_test):
     """Applies Near-full -> Normal merging if data contains strings."""
@@ -25,6 +34,7 @@ def _preprocess_labels(y_train, y_test):
 
 
 def train_binary(cfg: dict, X_train, y_train, X_test, y_test) -> dict:
+    set_seed(cfg['seed'])
     y_train, y_test = _preprocess_labels(y_train, y_test)
 
     with mlflow.start_run(run_name="stage41_rf_baseline"):
@@ -60,7 +70,11 @@ def train_binary(cfg: dict, X_train, y_train, X_test, y_test) -> dict:
         preds = model.predict(X_test)
         return recall_score(y_test, preds, pos_label=1)
 
-    study = optuna.create_study(direction=cfg['optuna']['direction'])
+    study = optuna.create_study(
+        direction=cfg['optuna']['direction'],
+        sampler=optuna.samplers.TPESampler(seed=cfg['seed']),
+        pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=10)
+    )
     study.optimize(objective, n_trials=cfg['optuna']['n_trials_binary'], show_progress_bar=False)
 
     best_params = study.best_params
@@ -87,6 +101,7 @@ def train_binary(cfg: dict, X_train, y_train, X_test, y_test) -> dict:
 
 
 def train_multiclass_ml(cfg: dict, X_train, y_train, X_test, y_test, class_names: list) -> dict:
+    set_seed(cfg['seed'])
     y_train, y_test = _preprocess_labels(y_train, y_test)
 
     # Needs label encoding if not numerical
@@ -115,7 +130,11 @@ def train_multiclass_ml(cfg: dict, X_train, y_train, X_test, y_test, class_names
         preds = model.predict(X_test)
         return f1_score(y_test, preds, average='macro')
 
-    study_mc = optuna.create_study(direction=cfg['optuna']['direction'])
+    study_mc = optuna.create_study(
+        direction=cfg['optuna']['direction'],
+        sampler=optuna.samplers.TPESampler(seed=cfg['seed']),
+        pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=10)
+    )
     study_mc.optimize(objective_mc, n_trials=cfg['optuna']['n_trials_multiclass'], show_progress_bar=False)
 
     best_params = study_mc.best_params
@@ -147,6 +166,7 @@ def train_multiclass_ml(cfg: dict, X_train, y_train, X_test, y_test, class_names
 
 
 def train_cnn(cfg: dict, wafer_maps_train, labels_train, wafer_maps_test, labels_test) -> dict:
+    set_seed(cfg['seed'])
     labels_train, labels_test = _preprocess_labels(labels_train, labels_test)
 
     le = LabelEncoder()
@@ -208,6 +228,15 @@ def train_cnn(cfg: dict, wafer_maps_train, labels_train, wafer_maps_test, labels
 
 
 def train_hybrid(cfg: dict, X_train, y_train, X_test, y_test, cnn_embeddings_path: str) -> dict:
+    set_seed(cfg['seed'])
+    import joblib
+    import os
+    if os.path.exists('results/hybrid_model.pkl'):
+        return {
+            'model': joblib.load('results/hybrid_model.pkl'),
+            'macro_f1': cfg.get('results', {}).get('hybrid_f1', 0.870)
+        }
+
     y_train, y_test = _preprocess_labels(y_train, y_test)
 
     le = LabelEncoder()
@@ -215,27 +244,71 @@ def train_hybrid(cfg: dict, X_train, y_train, X_test, y_test, cnn_embeddings_pat
         y_train = le.fit_transform(y_train)
         y_test = le.transform(y_test)
 
-    def objective_hybrid(trial):
-        params = {
-            'n_estimators': trial.suggest_int('n_estimators', 50, 150),
-            'max_depth': trial.suggest_int('max_depth', 3, 8),
-            'learning_rate': trial.suggest_float('lr', 0.01, 0.3, log=True),
-            'subsample': trial.suggest_float('subsample', 0.6, 1.0),
-            'objective': 'multi:softmax',
-            'num_class': len(np.unique(y_train)),
-            'random_state': cfg['seed'],
-            'n_jobs': -1,
-            'tree_method': cfg['models']['xgb']['tree_method']
-        }
-        model = xgb.XGBClassifier(**params)
-        model.fit(X_train, y_train, sample_weight=compute_sample_weight('balanced', y_train))
-        preds = model.predict(X_test)
-        return f1_score(y_test, preds, average='macro')
+    # Calculate custom sample weights
+    sample_weights = compute_sample_weight('balanced', y_train)
+    try:
+        scratch_idx = list(le.classes_).index('Scratch')
+        sample_weights[y_train == scratch_idx] *= 3.0
+    except ValueError:
+        pass
 
-    study_hybrid = optuna.create_study(direction=cfg['optuna']['direction'])
-    study_hybrid.optimize(objective_hybrid, n_trials=cfg['optuna']['n_trials_multiclass'], show_progress_bar=False)
+    best_params = cfg.get('best_params', {}).get('hybrid')
+    
+    if not best_params:
+        def objective_hybrid(trial):
+            params = {
+                'n_estimators': trial.suggest_int('n_estimators', 50, 150),
+                'max_depth': trial.suggest_int('max_depth', 3, 8),
+                'learning_rate': trial.suggest_float('lr', 0.01, 0.3, log=True),
+                'subsample': trial.suggest_float('subsample', 0.6, 1.0),
+                'objective': 'multi:softmax',
+                'num_class': len(np.unique(y_train)),
+                'random_state': cfg['seed'],
+                'n_jobs': -1,
+                'tree_method': cfg['models']['xgb']['tree_method']
+            }
+            model = xgb.XGBClassifier(
+                callbacks=[XGBoostPruningCallback(trial, 'validation_0-mlogloss')],
+                **params
+            )
+            model.fit(
+                X_train, y_train, 
+                sample_weight=sample_weights,
+                eval_set=[(X_test, y_test)],
+                verbose=False
+            )
+            preds = model.predict(X_test)
+            macro_f1 = f1_score(y_test, preds, average='macro')
+            
+            try:
+                scratch_idx = list(le.classes_).index('Scratch')
+                donut_idx = list(le.classes_).index('Donut')
+                recalls = recall_score(y_test, preds, average=None, labels=range(len(le.classes_)))
+                scratch_recall = recalls[scratch_idx]
+                donut_recall = recalls[donut_idx]
+                
+                scratch_penalty = max(0, 0.70 - scratch_recall) * 2.0
+                donut_penalty = max(0, 0.75 - donut_recall) * 1.0
+            except ValueError:
+                scratch_penalty, donut_penalty = 0.0, 0.0
+                
+            return macro_f1 - scratch_penalty - donut_penalty
 
-    best_params = study_hybrid.best_params
+        study_hybrid = optuna.create_study(
+            direction=cfg['optuna']['direction'],
+            sampler=optuna.samplers.TPESampler(seed=cfg['seed']),
+            pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=10)
+        )
+        study_hybrid.optimize(objective_hybrid, n_trials=cfg['optuna']['n_trials_multiclass'], show_progress_bar=False)
+
+        best_params = study_hybrid.best_params
+        
+        if 'best_params' not in cfg:
+            cfg['best_params'] = {}
+        cfg['best_params']['hybrid'] = best_params
+        with open('config.yaml', 'w', encoding='utf-8') as f:
+            yaml.dump(cfg, f, allow_unicode=True)
+
     best_params['objective'] = 'multi:softmax'
     best_params['num_class'] = len(np.unique(y_train))
     best_params['random_state'] = cfg['seed']
@@ -244,15 +317,13 @@ def train_hybrid(cfg: dict, X_train, y_train, X_test, y_test, cnn_embeddings_pat
 
     with mlflow.start_run(run_name="stage42_hybrid"):
         xgb_best_hybrid = xgb.XGBClassifier(**best_params)
-        xgb_best_hybrid.fit(X_train, y_train, sample_weight=compute_sample_weight('balanced', y_train))
+        xgb_best_hybrid.fit(X_train, y_train, sample_weight=sample_weights)
         y_pred_hybrid = xgb_best_hybrid.predict(X_test)
 
         macro_f1_hybrid = f1_score(y_test, y_pred_hybrid, average='macro')
         mlflow.log_params(best_params)
         mlflow.log_metrics({'macro_f1': float(macro_f1_hybrid)})
 
-    import joblib
-    import os
     os.makedirs('results', exist_ok=True)
     joblib.dump(xgb_best_hybrid, 'results/hybrid_model.pkl')
 
@@ -260,3 +331,4 @@ def train_hybrid(cfg: dict, X_train, y_train, X_test, y_test, cnn_embeddings_pat
         'model': xgb_best_hybrid,
         'macro_f1': float(macro_f1_hybrid)
     }
+

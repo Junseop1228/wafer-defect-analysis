@@ -216,3 +216,32 @@ Task 실행을 위해 root에 생성한 임시 스크립트는 Git Sync 전에 �
 4. mlflow.db 는 .gitignore에 포함되어 있으므로 그대로 둠
 
 **절대 root에 남겨두지 않는 파일**: *.py (src/, tests/, notebooks/ 외부)
+
+---
+
+## 모델 파일 보호 규칙 — 절대 금지 (2026-05-28 추가)
+
+아래 파일은 사람이 명시적으로 "삭제해줘"라고 말하지 않는 한 절대 삭제/덮어쓰기 금지:
+- results/hybrid_model.pkl
+- results/cnn_weights.pth
+- data/cnn_embeddings.npy
+
+**background task 실행 중에는 위 파일 절대 건드리지 않는다.**
+성능 확인이 필요하면 파일 로드 후 평가만 한다. 삭제 후 재학습 금지.
+m results/hybrid_model.pkl 또는 --stage validate를 사람 지시 없이 실행하는 것 금지.
+
+---
+
+## experiment_log 기록 누락 금지 (2026-05-28 추가)
+
+모든 python 실행 후 (성공/실패 무관) experiment_log.md 상단에 반드시 기록한다.
+기록 없이 다음 Task로 넘어가는 것 금지.
+run_pipeline.py 또는 train 관련 스크립트 실행 후에는 metrics 수치를 반드시 포함한다.
+
+---
+
+## git stash 사용 규칙 (2026-05-28 추가)
+
+git stash는 gitignore된 파일을 저장하지 않는다.
+results/*.pth, data/*.npy 등 gitignore 파일이 작업공간에 있을 때 브랜치를 바꿔야 하면:
+반드시 git stash -u (untracked 포함) 또는 파일을 별도 경로에 수동 백업 후 진행한다.
