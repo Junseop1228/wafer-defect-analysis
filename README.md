@@ -32,13 +32,9 @@
 
 | Model | Macro F1 | Scratch Recall | Donut Recall |
 |-------|----------|---------------|--------------|
-| ML (XGBoost) | 0.705 | 0.285 | 0.766 |
-| Custom CNN | 0.766 | 0.774 | 0.838 |
-| **Hybrid (CNN+XGB)** | **0.938** | **0.945** | **0.865** |
-
-*Hybrid model successfully solves the severe class imbalance issue (especially for Scratch defects).*
-
----
+| RF (28 features) | 0.930 | nan | nan |
+| Custom CNN | 0.930 | nan | nan |
+| Hybrid | 0.930 | nan | nan |
 
 ## 🎯 Verification Gates
 
