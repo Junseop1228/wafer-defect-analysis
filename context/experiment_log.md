@@ -6,6 +6,16 @@
 
 ---
 
+## [2026-05-28 20:11] Phase 4 Task 5 -- Streamlit Dashboard
+- Branch: agent/phase4-dashboard
+- Command: `conda activate wm811k; streamlit run app/streamlit_app.py`
+- Result: SUCCESS
+- Metrics: N/A
+- Gate: N/A
+- MLflow run_id: N/A
+- Error (if any): None
+- Notes: Built Streamlit dashboard (`app/streamlit_app.py`). Included 3 tabs: 1. Pipeline Status & Metrics, 2. Model Diagnostics (SHAP/Grad-CAM), 3. SPC & Anomaly Detection (Shewhart/CUSUM/EWMA + AE Overlay). Created `data/spc_timeseries.csv` for lightweight cloud deployment. Added `streamlit` and `plotly` to `requirements.txt`. Tested locally without errors.
+
 ## [2026-05-28 20:01] Phase 4 Task 4 -- Gate 4 Retest (Cycle 5)
 - Branch: agent/phase4-spc
 - Command: `conda activate wm811k; python scripts/run_gate4.py`
