@@ -194,3 +194,12 @@ Gate 실패 시: `context/experiment_log.md`에 실패 상세 기록 후 정지.
 - plans/에 명시되지 않은 작업 범위 확장 금지
 - context/ 파일을 plans/ 지시 없이 임의로 수정 금지
 
+
+## best_params 캐싱 규칙 (2026-05-28 추가)
+
+config.yaml의 best_params.hybrid는 한 번 저장되면 아래 조건 외에는 절대 null로 초기화하지 않는다:
+- Scratch 데이터가 5배 이상 증가한 경우
+- src/features.py 피처 구조가 바뀐 경우 (피처 수 변경)
+- CNN 아키텍처가 바뀐 경우 (임베딩 차원 변경)
+
+데이터가 10~20% 늘어나는 것은 초기화 조건이 아니다.
