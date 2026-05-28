@@ -6,6 +6,28 @@
 
 ---
 
+## [2026-05-28 17:29] Stage 4 — Hybrid Retraining + Gate 2/3 Validation (features_augmented.pkl)
+- Branch: agent/phase4-pseudo
+- Command: `conda activate wm811k; python run_pipeline.py --stage validate`
+- Data: `data/features_augmented.pkl` + `data/cnn_embeddings_augmented.npy`
+  - Labeled: 5,856 samples
+  - Pseudo-labeled (≥0.95 conf): 19,837 samples
+  - Scratch augmented (0.80–0.95 conf): 1,803 samples
+  - Total: 27,496 samples
+- Result: SUCCESS
+- Metrics:
+  - macro_f1: **0.9377**
+  - scratch_recall: **0.9454**
+  - donut_recall: **0.8649**
+  - binary_defect_recall: 0.9146 (from prior stage)
+- Optuna Best Trial: Trial 17 — n_estimators=120, max_depth=7, lr=0.299, subsample=0.894
+- Gate: Gate 2 — **PASSED** ✅ (Scratch 0.9454≥0.70, Donut 0.8649≥0.75)
+- Gate: Gate 3 — **PASSED** ✅ (Worst pair Edge-Ring↔Edge-Loc gap=0.0782 ≤ 0.20)
+- MLflow run_id: 41bf954b (stage42_hybrid)
+- Notes: Scratch recall 대폭 개선 (0.795→0.9454). Pseudo-label Scratch 1,803건 추가 효과 확인. XGBoost lr 파라미터 경고 있으나 학습 정상 완료.
+
+---
+
 ## [2026-05-28 16:48] Stage 4 — Task 1 Pseudo-labeling (Scratch Confidence >= 0.80)
 - Branch: agent/phase4-pseudo
 - Command: `conda activate wm811k; $env:PYTHONPATH="."; python scripts/run_task1.py; python scripts/append_scratch_pseudo.py`

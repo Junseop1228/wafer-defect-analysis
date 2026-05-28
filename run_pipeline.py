@@ -129,7 +129,7 @@ def run_multiclass(cfg):
 
 def run_validate(cfg):
     print("\n--- Running Validate Stage ---")
-    df_hybrid = pd.read_pickle('data/features_labeled_v2.pkl')
+    df_hybrid = pd.read_pickle('data/features_augmented.pkl')
     df_hybrid['failureType'] = df_hybrid['failureType'].replace({'Near-full': 'Normal', 'none': 'Normal'})
     FEATURE_COLS = [c for c in df_hybrid.columns if c != 'failureType']
     X_manual = df_hybrid[FEATURE_COLS].values
@@ -137,17 +137,18 @@ def run_validate(cfg):
     
     print("Loading existing CNN embeddings...")
     import os
-    if not os.path.exists(cfg['data']['cnn_embeddings']):
-        print(f"Error: {cfg['data']['cnn_embeddings']} not found. Run Task 3 first.")
+    emb_path = 'data/cnn_embeddings_augmented.npy'
+    if not os.path.exists(emb_path):
+        print(f"Error: {emb_path} not found. Run Task 3 first.")
         sys.exit(1)
         
-    cnn_embs = np.load(cfg['data']['cnn_embeddings'])
+    cnn_embs = np.load(emb_path)
     X_hybrid = np.hstack([X_manual, cnn_embs])
     
     idx_tr, idx_te = train_test_split(range(len(X_hybrid)), test_size=0.2, stratify=y_hybrid, random_state=cfg['seed'])
     
     print("Training Hybrid Multiclass with existing embeddings...")
-    res_hybrid = train_hybrid(cfg, X_hybrid[idx_tr], y_hybrid[idx_tr], X_hybrid[idx_te], y_hybrid[idx_te], cfg['data']['cnn_embeddings'])
+    res_hybrid = train_hybrid(cfg, X_hybrid[idx_tr], y_hybrid[idx_tr], X_hybrid[idx_te], y_hybrid[idx_te], emb_path)
     
     print("Evaluating Hybrid on Gate 2 and Gate 3...")
     y_pred_h = res_hybrid['model'].predict(X_hybrid[idx_te])
