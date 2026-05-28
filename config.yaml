@@ -1,9 +1,9 @@
 best_params:
   hybrid:
-    lr: 0.17215039311254465
-    max_depth: 8
-    n_estimators: 96
-    subsample: 0.8256527349993046
+    lr: 0.2993501632241744
+    max_depth: 7
+    n_estimators: 120
+    subsample: 0.8936052438260932
 classes:
   merge_to_normal:
   - Near-full
@@ -19,7 +19,7 @@ classes:
 cycles:
   max_iterations: 3
   pseudo_label_confidence: 0.95
-  pseudo_scratch_confidence: 0.80
+  pseudo_scratch_confidence: 0.8
 data:
   cnn_embeddings: data/cnn_embeddings.npy
   cnn_weights: results/cnn_weights.pth
@@ -72,10 +72,10 @@ optuna:
   n_trials_multiclass: 25
 results:
   binary_defect_recall: 0.9146
-  donut_recall: 0.784
-  gate3_worst_gap: 0.168
-  hybrid_f1: 0.87
-  scratch_recall: 0.795
+  donut_recall: 0.8649
+  gate3_worst_gap: 0.0782
+  hybrid_f1: 0.9377
+  scratch_recall: 0.9454
 seed: 42
 spc:
   cusum_h: 4.0

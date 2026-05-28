@@ -245,3 +245,22 @@ run_pipeline.py 또는 train 관련 스크립트 실행 후에는 metrics 수치
 git stash는 gitignore된 파일을 저장하지 않는다.
 results/*.pth, data/*.npy 등 gitignore 파일이 작업공간에 있을 때 브랜치를 바꿔야 하면:
 반드시 git stash -u (untracked 포함) 또는 파일을 별도 경로에 수동 백업 후 진행한다.
+
+## best_params 캐싱 규칙 (2026-05-28 추가)
+
+config.yaml의 best_params.hybrid는 한 번 저장되면 아래 조건 외에는 절대 null로 초기화하지 않는다:
+- Scratch 데이터가 5배 이상 증가한 경우 (pseudo-labeling 대규모 추가)
+- src/features.py 피처 구조가 바뀐 경우 (피처 수 변경, 새 피처 추가)
+- CNN 아키텍처가 바뀐 경우 (임베딩 차원 변경)
+
+위 조건이 아닌 경우 best_params.hybrid null 초기화 금지.
+데이터가 10~20% 늘어나는 것은 초기화 조건이 아니다.
+
+## Optuna 재실행 조건 (2026-05-28 추가)
+
+Optuna는 아래 두 조건 중 하나일 때만 재실행한다:
+1. best_params.hybrid가 null인 경우
+2. 위 best_params 캐싱 규칙의 초기화 조건에 해당하는 경우
+
+그 외 상황에서 best_params가 있으면 Optuna 스킵하고 바로 학습한다.
+"혹시 더 좋은 파라미터가 있을 수도 있으니" 같은 이유로 재실행하는 것 금지.
