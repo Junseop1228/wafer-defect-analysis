@@ -83,6 +83,7 @@ autoencoder:
   lr: 0.0001
   max_samples: 50000
   pos_weight: 20.0
+  threshold: 0.269747
   weights_path: results/ae_weights.pth
 seed: 42
 spc:
