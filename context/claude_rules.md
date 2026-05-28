@@ -119,6 +119,45 @@ Windows MCP로 아래 2개 파일 직접 업데이트:
 
 ---
 
+## Phase 4 Git 운영 규칙 — PR 방식 전환
+
+**Phase 4부터 모든 Task는 CLI squash merge 대신 GitHub PR로 관리한다.**
+
+### Antigravity Task 완료 시 PR 생성 절차
+
+Task 코드 작업 완료 후 Antigravity가 할 것:
+1. `agent/phase4-*` 브랜치에 commit & push
+2. **CLI merge 하지 않는다**
+3. experiment_log.md 업데이트 후 push까지만 하고 정지
+
+Claude.ai가 할 것:
+1. Antigravity 완료 보고 받으면 PR description 작성
+2. 아래 형식으로 사용자에게 안내:
+
+```
+PR 열어줘:
+- base: dev
+- compare: agent/phase4-[task명]
+- title: "feat: phase4 task[N] — [작업 내용]"
+- description: [Claude.ai가 작성한 내용]
+```
+
+### PR description 포함 내용
+- 작업 요약 (2~3줄)
+- 완료된 함수/모듈 목록
+- Gate 결과 (해당되는 경우)
+- 주요 수치
+
+### PR merge 후
+사용자가 GitHub에서 직접 "Squash and merge" 클릭.
+merge 완료되면 Claude.ai가 stage_status.md 업데이트.
+
+### 예외
+- 단순 수정(style fix, config 변경 등)은 CLI merge 허용
+- Phase 4 Task 1~6 메인 작업은 반드시 PR
+
+---
+
 ## 프로젝트 핵심 정보 요약
 
 - Root: C:\Users\userPC\Desktop\Workspace\01_Projects\WM811K_Portfolio\
