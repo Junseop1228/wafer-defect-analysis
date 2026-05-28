@@ -6,7 +6,24 @@
 
 ---
 
+## [2026-05-28 18:49] Phase 4 Task 2 -- src/autoencoder.py (WaferAutoencoder + Training)
+- Branch: agent/phase4-autoencoder
+- Command: `conda activate wm811k; python scripts/run_ae_train.py`
+- Result: SUCCESS
+- Metrics:
+  - ae_mean_recon_error (normal unlabeled, 50k samples): 0.009084
+  - ae_threshold (95th pct): 0.022568
+  - normal_anomaly_score_mean: 0.013912
+  - defect_anomaly_score_mean: 0.016914
+  - normal_above_threshold: 10.8%
+  - defect_above_threshold: 21.8%
+- Gate: N/A (AE is input to Gate 4 via SPC dual-detection in Task 3-4)
+- MLflow run_id: stage7_autoencoder (auto)
+- Error (if any): None
+- Notes: Trained Conv AE (1->16->32->64->FC128) on 50,000 unlabeled wafer maps (of 638,507 total; subsampled for RAM safety). Input: full normalized map (values /2, range [0,1]) -- NOT binary defect mask (which caused MSE=0 bug). Normal wafer circular pattern learned well. Defect mean score (0.016914) > Normal mean score (0.013912), defect_above_threshold (21.8%) vs normal (10.8%) confirms anomaly detection is working. Weights saved to results/ae_weights.pth.
+
 ## [2026-05-28 16:48] Stage 4 — Task 1 Pseudo-labeling (Scratch Confidence >= 0.80)
+
 - Branch: agent/phase4-pseudo
 - Command: `conda activate wm811k; $env:PYTHONPATH="."; python scripts/run_task1.py; python scripts/append_scratch_pseudo.py`
 - Result: SUCCESS (Scratch pseudo label target met)

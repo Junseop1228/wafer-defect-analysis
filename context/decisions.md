@@ -45,3 +45,19 @@
 - **Rationale**: Real Fab SPC runs CUSUM as workhorse because it detects sustained drift (e.g. CMP pad wear). Shewhart catches spikes. EWMA bridges both. This mirrors actual production usage
 - **Trade-off**: CUSUM requires Phase 1 baseline; approximated with top-30% None-ratio lots
 - **Interview talking point**: "현업 SPC 운영 방식 그대로 CUSUM 중심으로 설계했습니다"
+
+---
+
+## Known Issues & Root Cause Log
+
+> 재발 방지 목적. 같은 버그를 다른 Task에서 반복하지 않기 위해 기록.
+
+### [2026-05-28] Bug: failureType ndarray 타입 불일치 (Task 2 autoencoder.py)
+- **증상**: `Unlabeled samples: 0` — 레이블 없는 샘플을 하나도 찾지 못해 AE 학습 데이터 0장
+- **근본 원인**: LSWMD.pkl의 `failureType` 컬럼이 문자열이 아닌 `np.ndarray`로 저장되어 있음
+  - 레이블 없는 샘플: `array([], shape=(0,0))` (빈 배열)
+  - 레이블 있는 샘플: `array([['Scratch']])` (2D 배열)
+  - autoencoder.py의 `_is_unlabeled`가 `str` / `list` 타입만 체크 → ndarray 전부 필터 미통과
+- **수정**: `x[0][0] if x.size > 0 else ""` 패턴으로 통일 (pseudo_label.py와 동일)
+- **왜 반복됐나**: Task 1(pseudo_label.py)에서 동일 문제를 이미 해결했으나, Task 2 코드 작성 시 해당 패턴을 참조하지 않고 독립적으로 재작성 → 동일 버그 재발. import 테스트는 통과하지만 실제 데이터 실행 전까지 드러나지 않는 종류의 버그
+- **재발 방지**: LSWMD.pkl을 다루는 모든 신규 코드는 반드시 pseudo_label.py의 `failureType` 파싱 패턴을 참조할 것. `x.size > 0` 체크 후 `x[0][0]` 추출이 표준 패턴.
