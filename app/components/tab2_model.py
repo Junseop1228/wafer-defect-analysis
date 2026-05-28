@@ -53,7 +53,7 @@ def render_tab2():
                 st.warning(f"Grad-CAM plot not found at {gc_path}. Run phase 3 evaluation to generate.")
                 
         with tab_cm:
-            cm_path = "results/figures/confusion_matrix.png"
+            cm_path = "results/figures/cm_hybrid_multiclass.png"
             if os.path.exists(cm_path):
                 st.image(cm_path, caption="Hybrid Model Confusion Matrix", use_container_width=True)
             else:
