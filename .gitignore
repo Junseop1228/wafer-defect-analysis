@@ -13,7 +13,6 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Generated figures (reproducible)
-results/figures/*.png
 
 # OS
 .DS_Store
