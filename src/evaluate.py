@@ -1,4 +1,4 @@
-﻿import pandas as pd
+import pandas as pd
 
 # Gate checks + Metric computation
 # Gate1: SHAP / corr  Gate2: Recall  Gate3: confusion pair  Gate4: ARL
@@ -156,3 +156,16 @@ def check_gate3(y_true, y_pred, class_names: list, cfg: dict,
             print(f"  {p['pair']}: F1_gap={p['f1_gap']:.4f} (A={p['f1_A']}, B={p['f1_B']})")
 
     return result
+
+def check_gate4(arl: float, cfg: dict) -> dict:
+    """Gate 4: ARL >= 370."""
+    threshold = cfg["gates"]["gate4"]["min_arl"]
+    passed = bool(arl >= threshold)
+    status = 'PASSED' if passed else 'FAILED'
+    
+    print(f'[GATE 4 SPC ARL] {status}: {arl:.1f} (threshold: {threshold})')
+    
+    return {
+        'passed': passed, 
+        'details': {'arl': float(arl), 'threshold': threshold}
+    }

@@ -86,7 +86,8 @@ autoencoder:
   weights_path: results/ae_weights.pth
 seed: 42
 spc:
-  cusum_h: 4.0
+  cusum_h: 5.0
   cusum_k: 0.5
   ewma_lambda: 0.2
   phase1_percentile: 70
+  strict_phase1_zero_defect: true
