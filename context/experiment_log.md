@@ -6,6 +6,25 @@
 
 ---
 
+## [2026-05-28 17:44] Stage 4 — Clean Evaluation (Labeled-Only Test Split, pseudo 제외)
+- Branch: agent/phase4-pseudo
+- Command: `python -c "... features_labeled_v2.pkl + cnn_embeddings.npy, test_size=0.2, seed=42"`
+- Data: `data/features_labeled_v2.pkl` (labeled only, Near-full→Normal 치환)
+  - Test set: 20% stratified split (seed=42), pseudo label 데이터 완전 제외
+  - Test samples: ~34,590 (172,950 × 0.2)
+- Model: `results/hybrid_model.pkl` (수정 없음, 평가만)
+- Result: SUCCESS
+- Metrics:
+  - macro_f1: **0.9581**
+  - scratch_recall: **0.9498**
+  - donut_recall: **0.9550**
+  - Center: 0.9627 / Donut: 0.9550 / Edge-Loc: 0.8960
+  - Edge-Ring: 0.9943 / Loc: 0.9485 / Normal: 0.9965 / Random: 0.9884
+- Gate: Gate 2 — **PASSED** ✅ (Scratch 0.9498≥0.70, Donut 0.9550≥0.75)
+- Notes: 최초 평가 Scratch=0.0 오류는 LabelEncoder 불일치 (XGBClassifier 정수 출력) 때문. features_augmented.pkl 기준으로 LabelEncoder 재구성하여 역변환 후 정확한 수치 확인.
+
+---
+
 ## [2026-05-28 17:29] Stage 4 — Hybrid Retraining + Gate 2/3 Validation (features_augmented.pkl)
 - Branch: agent/phase4-pseudo
 - Command: `conda activate wm811k; python run_pipeline.py --stage validate`
