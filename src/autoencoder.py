@@ -16,12 +16,9 @@ import yaml
 class WaferMapAEDataset(Dataset):
     """Single-channel 64x64 wafer maps for autoencoder training.
 
-    Input encoding: values 0/1/2 normalized to [0, 1] by dividing by 2.
-      0 = outside wafer  -> 0.0
-      1 = normal die     -> 0.5
-      2 = defect die     -> 1.0
-    Normal wafers have a stable circular pattern (ring of 0.5 values).
-    AE learns this pattern; defect wafers deviate -> higher MSE.
+    Input encoding: Binary mask
+      Defect die (value 2) = 1.0
+      Normal/Outside (value 0, 1) = 0.0
     """
 
     def __init__(self, wafer_maps: np.ndarray):
@@ -31,7 +28,6 @@ class WaferMapAEDataset(Dataset):
         return len(self.wafer_maps)
 
     def __getitem__(self, idx):
-        # Already 64x64 float32 in [0, 1] — wrap in channel dim
         return torch.tensor(self.wafer_maps[idx]).unsqueeze(0)
 
 
@@ -159,14 +155,34 @@ def train_autoencoder(cfg: dict) -> dict:
     # Load data
     wafer_maps = _load_unlabeled_wafer_maps(cfg)
 
-    # RAM safety: subsample if too many
-    if len(wafer_maps) > max_samples:
-        rng = np.random.default_rng(seed)
-        idx = rng.choice(len(wafer_maps), max_samples, replace=False)
-        wafer_maps = wafer_maps[idx]
-        print(f"[AE] Subsampled to {max_samples:,} for RAM safety")
+    # RAM safety & Diversity sampling: 
+    # Calculate defect ratio to ensure we include wafers with > 0.01 defect ratio
+    print("[AE] Calculating defect ratios for sampling diversity...")
+    ratios = []
+    for wmap in wafer_maps:
+        wmap = np.array(wmap)
+        defects = np.sum(wmap == 2)
+        total = np.sum(wmap > 0)
+        ratios.append(defects / total if total > 0 else 0)
+    ratios = np.array(ratios)
+    
+    idx_high = np.where(ratios > 0.01)[0]
+    idx_low = np.where(ratios <= 0.01)[0]
+    
+    rng = np.random.default_rng(seed)
+    # We want up to 20% high defect ratio wafers in our 50k sample if available
+    n_high_target = min(int(max_samples * 0.2), len(idx_high))
+    n_low_target = min(max_samples - n_high_target, len(idx_low))
+    
+    idx_high_sampled = rng.choice(idx_high, n_high_target, replace=False) if n_high_target > 0 else []
+    idx_low_sampled = rng.choice(idx_low, n_low_target, replace=False) if n_low_target > 0 else []
+    
+    sampled_indices = np.concatenate([idx_high_sampled, idx_low_sampled]).astype(int)
+    rng.shuffle(sampled_indices)
+    wafer_maps = wafer_maps[sampled_indices]
+    print(f"[AE] Sampled {len(sampled_indices):,} wafers ({n_high_target:,} with defect_ratio > 0.01)")
 
-    # Preprocess: resize to 64x64, normalize 0/1/2 -> [0,1]
+    # Preprocess: resize to 64x64, convert to binary mask
     processed = []
     for wmap in wafer_maps:
         wmap = np.array(wmap, dtype=np.float32)
@@ -175,7 +191,7 @@ def train_autoencoder(cfg: dict) -> dict:
             row_idx = np.floor(np.arange(64) * H / 64).astype(int)
             col_idx = np.floor(np.arange(64) * W / 64).astype(int)
             wmap = wmap[row_idx, :][:, col_idx]
-        processed.append(wmap / 2.0)  # normalize: 0->0.0, 1->0.5, 2->1.0
+        processed.append((wmap == 2).astype(np.float32))
 
     wafer_maps_proc = np.stack(processed, axis=0)  # (N, 64, 64)
     print(f"[AE] Training samples: {len(wafer_maps_proc):,}")
@@ -186,7 +202,11 @@ def train_autoencoder(cfg: dict) -> dict:
 
     model = WaferAutoencoder(bottleneck=bottleneck).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    criterion = nn.MSELoss()
+    pos_weight = ae_cfg.get("pos_weight", 20.0)
+
+    def weighted_mse_loss(input, target):
+        weights = torch.where(target > 0.5, pos_weight, 1.0)
+        return torch.mean(weights * (input - target) ** 2)
 
     experiment_name = cfg["mlflow"]["experiment_name"]
     mlflow.set_tracking_uri(cfg["mlflow"]["tracking_uri"])
@@ -197,6 +217,7 @@ def train_autoencoder(cfg: dict) -> dict:
             "ae_epochs": epochs,
             "ae_batch_size": batch_size,
             "ae_lr": lr,
+            "ae_pos_weight": pos_weight,
             "ae_bottleneck": bottleneck,
             "ae_train_samples": len(wafer_maps_proc),
         })
@@ -207,7 +228,7 @@ def train_autoencoder(cfg: dict) -> dict:
             for batch in loader:
                 x = batch.to(device)
                 recon = model(x)
-                loss = criterion(recon, x)
+                loss = weighted_mse_loss(recon, x)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
@@ -225,8 +246,11 @@ def train_autoencoder(cfg: dict) -> dict:
             for batch in eval_loader:
                 x = batch.to(device)
                 recon = model(x)
-                err = ((recon - x) ** 2).mean(dim=(1, 2, 3))
-                recon_errors.extend(err.cpu().numpy().tolist())
+                err = weighted_mse_loss(recon, x)
+                # We need per-sample error for percentiles
+                weights = torch.where(x > 0.5, pos_weight, 1.0)
+                per_sample_err = torch.mean(weights * (recon - x) ** 2, dim=(1,2,3))
+                recon_errors.extend(per_sample_err.cpu().numpy().tolist())
 
         recon_errors = np.array(recon_errors)
         mean_err = float(np.mean(recon_errors))
@@ -274,7 +298,7 @@ def compute_anomaly_scores(cfg: dict, wafer_maps: np.ndarray) -> np.ndarray:
     model.load_state_dict(torch.load(weights_path, map_location=device))
     model.eval()
 
-    # Preprocess: resize to 64x64, normalize 0/1/2 -> [0,1]
+    # Preprocess: resize to 64x64, convert to binary mask
     processed = []
     for wmap in wafer_maps:
         wmap = np.array(wmap, dtype=np.float32)
@@ -283,19 +307,22 @@ def compute_anomaly_scores(cfg: dict, wafer_maps: np.ndarray) -> np.ndarray:
             row_idx = np.floor(np.arange(64) * H / 64).astype(int)
             col_idx = np.floor(np.arange(64) * W / 64).astype(int)
             wmap = wmap[row_idx, :][:, col_idx]
-        processed.append(wmap / 2.0)  # normalize: 0->0.0, 1->0.5, 2->1.0
+        processed.append((wmap == 2).astype(np.float32))
 
     wafer_maps_proc = np.stack(processed, axis=0)  # (N, 64, 64)
     dataset = WaferMapAEDataset(wafer_maps_proc)
     loader = DataLoader(dataset, batch_size=batch_size,
                         shuffle=False, num_workers=0)
 
+    pos_weight = ae_cfg.get("pos_weight", 20.0)
+
     scores = []
     with torch.no_grad():
         for batch in loader:
             x = batch.to(device)
             recon = model(x)
-            err = ((recon - x) ** 2).mean(dim=(1, 2, 3))
-            scores.extend(err.cpu().numpy().tolist())
+            weights = torch.where(x > 0.5, pos_weight, 1.0)
+            per_sample_err = torch.mean(weights * (recon - x) ** 2, dim=(1,2,3))
+            scores.extend(per_sample_err.cpu().numpy().tolist())
 
     return np.array(scores, dtype=np.float32)
